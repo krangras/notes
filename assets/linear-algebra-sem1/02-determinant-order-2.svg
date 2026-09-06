@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="220" viewBox="0 0 600 220" role="img" aria-label="Графическое правило вычисления определителя второго порядка" style="width:100%;height:auto;display:block;color:#24292f;">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M55 35 V165 M250 35 V165" stroke-width="2.4"/>
+    <path d="M350 35 V165 M545 35 V165" stroke-width="2.4"/>
+    <line x1="110" y1="72" x2="195" y2="132" stroke-width="3"/>
+    <line x1="490" y1="72" x2="405" y2="132" stroke-width="3"/>
+  </g>
+  <g fill="currentColor">
+    <circle cx="110" cy="72" r="3.3"/><circle cx="195" cy="132" r="3.3"/>
+    <circle cx="490" cy="72" r="3.3"/><circle cx="405" cy="132" r="3.3"/>
+  </g>
+  <g font-size="21" fill="currentColor">
+    <text x="78" y="60">a₁₁</text><text x="188" y="60">a₁₂</text>
+    <text x="78" y="150">a₂₁</text><text x="188" y="150">a₂₂</text>
+    <text x="373" y="60">a₁₁</text><text x="483" y="60">a₁₂</text>
+    <text x="373" y="150">a₂₁</text><text x="483" y="150">a₂₂</text>
+    <text x="152" y="205" font-size="28" text-anchor="middle">+</text>
+    <text x="447" y="205" font-size="28" text-anchor="middle">−</text>
+  </g>
+</svg>

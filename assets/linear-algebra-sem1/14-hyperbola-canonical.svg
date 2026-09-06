@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="380" viewBox="0 0 680 380" role="img" aria-label="Канонический чертёж гиперболы" style="display:block;width:100%;height:auto;color:#24292f;">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <defs>
+    <marker id="s1-hyp-redraw-arr" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <g stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- axes -->
+    <line x1="65" y1="190" x2="620" y2="190" stroke-width="2.1" marker-end="url(#s1-hyp-redraw-arr)"/>
+    <line x1="335" y1="330" x2="335" y2="26" stroke-width="2.1" marker-end="url(#s1-hyp-redraw-arr)"/>
+
+    <!-- asymptotes -->
+    <line x1="145" y1="312" x2="525" y2="68" stroke-width="1.7" stroke-dasharray="8 8" opacity="0.62"/>
+    <line x1="145" y1="68" x2="525" y2="312" stroke-width="1.7" stroke-dasharray="8 8" opacity="0.62"/>
+
+    <!-- hyperbola branches -->
+    <path d="M245 190
+             C239 170, 226 146, 208 123
+             C191 102, 168 82, 145 68"
+          stroke-width="2.5"/>
+    <path d="M245 190
+             C239 210, 226 234, 208 257
+             C191 278, 168 298, 145 312"
+          stroke-width="2.5"/>
+    <path d="M425 190
+             C431 170, 444 146, 462 123
+             C479 102, 502 82, 525 68"
+          stroke-width="2.5"/>
+    <path d="M425 190
+             C431 210, 444 234, 462 257
+             C479 278, 502 298, 525 312"
+          stroke-width="2.5"/>
+
+    <!-- points -->
+    <g fill="currentColor">
+      <circle cx="245" cy="190" r="4.3"/>
+      <circle cx="425" cy="190" r="4.3"/>
+      <circle cx="190" cy="190" r="4.3"/>
+      <circle cx="480" cy="190" r="4.3"/>
+    </g>
+  </g>
+
+  <g fill="currentColor" font-family="Georgia, 'Times New Roman', serif" font-size="17">
+    <text x="168" y="171">F₁</text>
+    <text x="489" y="171">F₂</text>
+
+    <text x="194" y="217">A₁(−a;0)</text>
+    <text x="431" y="217">A₂(a;0)</text>
+
+    <text x="347" y="212">O</text>
+    <text x="627" y="196">x</text>
+    <text x="346" y="22">y</text>
+
+    <text x="498" y="106">y=(b/a)x</text>
+    <text x="498" y="292">y=−(b/a)x</text>
+  </g>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="360" viewBox="0 0 700 360" role="img" aria-label="Парабола, фокус и директриса" style="display:block;width:100%;height:auto;color:#24292f;">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <defs><marker id="s1parproof2" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="currentColor"/></marker></defs>
+  <g stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="145" y1="55" x2="145" y2="300" stroke-width="2.2"/>
+    <line x1="280" y1="300" x2="280" y2="45" stroke-width="2" marker-end="url(#s1parproof2)"/>
+    <line x1="80" y1="245" x2="635" y2="245" stroke-width="2" marker-end="url(#s1parproof2)"/>
+    <circle cx="470" cy="120" r="4.3" fill="currentColor"/>
+    <circle cx="385" cy="245" r="4.3" fill="currentColor"/>
+    <line x1="145" y1="120" x2="470" y2="120" stroke-width="2.5"/>
+    <line x1="470" y1="120" x2="385" y2="245" stroke-width="2.5"/>
+    <path d="M145 120 h16 v16" stroke-width="1.7"/>
+  </g>
+  <g fill="currentColor" font-size="18">
+    <text x="84" y="78">D: x=−p/2</text>
+    <text x="483" y="112">M(x;y)</text>
+    <text x="398" y="271">F(p/2;0)</text>
+    <text x="288" y="102">ρ₁</text>
+    <text x="430" y="188">ρ₂</text>
+    <text x="642" y="252">x</text>
+    <text x="291" y="43">y</text>
+    <text x="262" y="267">O</text>
+  </g>
+</svg>

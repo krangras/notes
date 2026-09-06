@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360" role="img" aria-label="Правая и левая тройки векторов" style="display:block;width:100%;height:auto;color:#24292f;">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <defs>
+    <marker id="s1tripleArrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <g stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- common origin -->
+    <circle cx="330" cy="180" r="4.2" fill="currentColor"/>
+
+    <!-- b -->
+    <line x1="330" y1="180" x2="570" y2="180" stroke-width="2.8" marker-end="url(#s1tripleArrow)"/>
+
+    <!-- a -->
+    <line x1="330" y1="180" x2="455" y2="305" stroke-width="2.8" marker-end="url(#s1tripleArrow)"/>
+
+    <!-- [a x b] -->
+    <line x1="330" y1="180" x2="330" y2="45" stroke-width="2.8" marker-end="url(#s1tripleArrow)"/>
+
+    <!-- c(I): acute angle with [a x b] -->
+    <line x1="330" y1="180" x2="485" y2="62" stroke-width="2.2" stroke-dasharray="9 8" marker-end="url(#s1tripleArrow)"/>
+
+    <!-- c(II): obtuse angle with [a x b] -->
+    <line x1="330" y1="180" x2="165" y2="320" stroke-width="2.2" stroke-dasharray="9 8" marker-end="url(#s1tripleArrow)"/>
+
+    <!-- acute angle arc between [a x b] and c(I) -->
+    <path d="M330 112 A68 68 0 0 1 382 132" stroke-width="1.8"/>
+
+    <!-- lambda angle between b and a -->
+    <path d="M395 180 A65 65 0 0 1 376 226" stroke-width="1.8"/>
+  </g>
+
+  <g fill="currentColor" font-size="18" style="paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round;">
+    <text x="584" y="186">b</text>
+    <text x="463" y="325">a</text>
+    <text x="294" y="34">[a×b]</text>
+    <text x="498" y="58">c(I)</text>
+    <text x="105" y="338">c(II)</text>
+    <text x="390" y="237">λ</text>
+    <text x="394" y="124" font-size="16">острый</text>
+  </g>
+</svg>

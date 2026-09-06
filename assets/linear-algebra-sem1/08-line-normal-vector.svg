@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="330" viewBox="0 0 620 330" role="img" aria-label="Схема прямой, точки M₀, точки M и нормального вектора n" style="display:block;width:100%;height:auto;color:#24292f;">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <defs>
+    <marker id="s1-ticket15-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <g stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- прямая L: как в тетради, снизу-слева вверх-вправо -->
+    <line x1="145" y1="305" x2="490" y2="70" stroke-width="2.8"/>
+
+    <!-- точка M₀ на прямой -->
+    <circle cx="300" cy="200" r="4.5" fill="currentColor"/>
+
+    <!-- вектор n из M₀ вверх-влево -->
+    <line x1="300" y1="200" x2="205" y2="110"
+          stroke-width="2.8" marker-end="url(#s1-ticket15-arrow)"/>
+
+    <!-- вектор M₀M вертикально вверх, как в исходной тетради -->
+    <line x1="300" y1="200" x2="300" y2="82"
+          stroke-width="2.8" marker-end="url(#s1-ticket15-arrow)"/>
+
+    <!-- прямой угол между n и прямой L -->
+    <path d="M278 179 L289 168 L300 179"
+          stroke-width="2.0"/>
+
+    <!-- точка M -->
+    <circle cx="300" cy="82" r="4.2" fill="currentColor"/>
+  </g>
+
+  <g fill="currentColor" font-family="Georgia, 'Times New Roman', serif" font-size="19">
+    <g transform="translate(166 86)">
+      <text x="0" y="18">n</text>
+      <line x1="1" y1="2" x2="18" y2="2" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M18 2 L13 -1 M18 2 L13 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </g>
+    <text x="314" y="73">M(x,y)</text>
+    <text x="312" y="228">M₀</text>
+    <text x="500" y="67">L</text>
+  </g>
+</svg>

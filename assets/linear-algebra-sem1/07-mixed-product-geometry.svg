@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430" role="img" aria-label="Геометрический смысл смешанного произведения" style="display:block;width:100%;height:auto;color:#24292f;">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- ПАРАЛЛЕЛЕПИПЕД -->
+    <!-- base S: O-A-D-B -->
+    <circle cx="110" cy="260" r="4" fill="currentColor"/>
+    <line x1="110" y1="260" x2="355" y2="260" stroke-width="2.6" marker-end="url(#arr)"/>
+    <line x1="110" y1="260" x2="215" y2="195" stroke-width="2.6" marker-end="url(#arr)"/>
+    <line x1="215" y1="195" x2="460" y2="195" stroke-width="2.1"/>
+    <line x1="355" y1="260" x2="460" y2="195" stroke-width="2.1"/>
+
+    <!-- c and translated top face -->
+    <line x1="110" y1="260" x2="175" y2="92" stroke-width="2.8" marker-end="url(#arr)"/>
+    <line x1="175" y1="92" x2="280" y2="27" stroke-width="1.8" stroke-dasharray="7 7"/>
+    <line x1="175" y1="92" x2="420" y2="92" stroke-width="1.8" stroke-dasharray="7 7"/>
+    <line x1="280" y1="27" x2="525" y2="27" stroke-width="1.8" stroke-dasharray="7 7"/>
+    <line x1="420" y1="92" x2="525" y2="27" stroke-width="1.8" stroke-dasharray="7 7"/>
+    <line x1="215" y1="195" x2="280" y2="27" stroke-width="1.6" stroke-dasharray="6 7" opacity=".65"/>
+    <line x1="355" y1="260" x2="420" y2="92" stroke-width="1.6" stroke-dasharray="6 7" opacity=".65"/>
+    <line x1="460" y1="195" x2="525" y2="27" stroke-width="1.6" stroke-dasharray="6 7" opacity=".65"/>
+
+    <!-- height and normal exactly like notebook: normal below O, height above -->
+    <line x1="110" y1="260" x2="110" y2="112" stroke-width="1.9"/>
+    <line x1="110" y1="260" x2="110" y2="350" stroke-width="2.5" marker-end="url(#arr)"/>
+    <path d="M110 244 h16 v16" stroke-width="1.7"/>
+    <!-- clean alpha arc between h and c -->
+    <path d="M110 210 A50 50 0 0 1 129 214" stroke-width="1.8"/>
+
+    <!-- ПИРАМИДА -->
+    <circle cx="620" cy="260" r="4" fill="currentColor"/>
+    <!-- base triangle O-A-B -->
+    <line x1="620" y1="260" x2="790" y2="260" stroke-width="2.6" marker-end="url(#arr)"/>
+    <line x1="620" y1="260" x2="700" y2="220" stroke-width="2.6" marker-end="url(#arr)"/>
+    <line x1="700" y1="220" x2="790" y2="260" stroke-width="2.1"/>
+    <!-- c / apex and sides -->
+    <line x1="620" y1="260" x2="735" y2="92" stroke-width="2.8" marker-end="url(#arr)"/>
+    <line x1="735" y1="92" x2="790" y2="260" stroke-width="2.1"/>
+    <line x1="735" y1="92" x2="700" y2="220" stroke-width="1.8" stroke-dasharray="6 6"/>
+    <!-- normal and h direction at O -->
+    <line x1="620" y1="260" x2="620" y2="126" stroke-width="2.0"/>
+    <path d="M620 210 A42 42 0 0 1 638 216" stroke-width="1.8"/>
+    <path d="M620 244 h14 v14" stroke-width="1.7"/>
+  </g>
+
+  <g fill="currentColor" font-family="Georgia, 'Times New Roman', serif" font-size="18">
+    <!-- left labels -->
+    <text x="257" y="292">b</text>
+    <text x="205" y="185">a</text>
+    <text x="184" y="84">c</text>
+    <text x="72" y="183">h</text>
+    <text x="53" y="386">[a×b]</text>
+    <text x="139" y="216">α</text>
+    <text x="310" y="231" font-size="24">S</text>
+    <text x="236" y="408" font-size="19">параллелепипед</text>
+
+    <!-- right labels -->
+    <text x="700" y="281">b</text>
+    <text x="666" y="236">a</text>
+    <text x="742" y="87">c</text>
+    <text x="604" y="183">h</text>
+    <text x="572" y="102">[a×b]</text>
+    <text x="645" y="198">α</text>
+    <text x="690" y="243" font-size="24">S</text>
+    <text x="740" y="408" font-size="19">пирамида</text>
+  </g>
+</svg>

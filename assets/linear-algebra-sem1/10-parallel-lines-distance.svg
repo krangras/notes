@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="350" viewBox="0 0 700 350" role="img" aria-label="Расстояние между параллельными прямыми — схема по тетради" style="display:block;width:100%;height:auto;color:#24292f;">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <g stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- L₂ и L₁, строго параллельные -->
+    <line x1="100" y1="110" x2="530" y2="30" stroke-width="2.7"/>
+    <line x1="140" y1="240" x2="570" y2="160" stroke-width="2.7"/>
+
+    <!-- M₂ на L₂ -->
+    <circle cx="295" cy="74" r="4.2" fill="currentColor"/>
+
+    <!-- ρ к L₁ -->
+    <line x1="295" y1="74" x2="320" y2="207" stroke-width="2.4"/>
+    <circle cx="320" cy="207" r="3.7" fill="currentColor"/>
+
+    <!-- прямой угол у L₁ -->
+    <path d="M318 197 L328 195 L330 205" stroke-width="1.8"/>
+  </g>
+
+  <g fill="currentColor" font-family="Georgia, 'Times New Roman', serif" font-size="17">
+    <!-- подпись верхней прямой слева, как в тетради -->
+    <text x="80" y="95" transform="rotate(-10.54 80 95)">L₂: Ax + By + C₂ = 0</text>
+
+    <!-- M₂ отдельно справа от точки, без наложения -->
+    <text x="311" y="56">M₂(x₂,y₂)</text>
+
+    <!-- ρ слева от перпендикуляра -->
+    <text x="274" y="145">ρ</text>
+
+    <!-- подпись нижней прямой ниже неё, как в тетради -->
+    <text x="150" y="275" transform="rotate(-10.54 150 275)">L₁: Ax + By + C₁ = 0</text>
+  </g>
+</svg>
