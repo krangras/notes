@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Учебные материалы</title>
+  <meta name="description" content="Конспекты, билеты, лекции и практика">
+  <link rel="stylesheet" href="./styles.css">
+
+  <script>
+    window.MathJax = {
+      loader: {
+        load: [
+          '[tex]/ams',
+          '[tex]/mathtools',
+          '[tex]/physics',
+          '[tex]/cancel',
+          '[tex]/cases',
+          '[tex]/centernot',
+          '[tex]/empheq',
+          '[tex]/mhchem',
+          '[tex]/upgreek',
+          '[tex]/color',
+          '[tex]/boldsymbol',
+          '[tex]/braket',
+          '[tex]/bbox'
+        ]
+      },
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true,
+        packages: {'[+]': [
+          'ams','mathtools','physics','cancel','cases','centernot',
+          'empheq','mhchem','upgreek','color','boldsymbol','braket','bbox'
+        ]}
+      },
+      svg: {fontCache: 'global'},
+      startup: {typeset: false}
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-svg.js"></script>
+</head>
+<body>
+  <div class="reading-progress" id="readingProgress"></div>
+
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="./" id="brandLink">
+        <span class="brand-mark">N</span>
+        <span>notes</span>
+      </a>
+      <a class="github-link" href="https://github.com/krangras/notes" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </header>
+
+  <main id="app"></main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
