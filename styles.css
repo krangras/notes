@@ -163,3 +163,198 @@ mjx-container[jax="SVG"][display="true"]{overflow-x:auto;overflow-y:hidden;max-w
   .article{border-radius:16px;padding:20px 16px}
   .ticket{margin-left:0;margin-right:0}
 }
+
+
+/* --- Определения: кликабельные термины и всплывающее окно --- */
+
+.definition-trigger{
+  display:inline;
+  padding:0;
+  border:0;
+  background:none;
+  color:inherit;
+  font:inherit;
+  font-weight:800;
+  cursor:pointer;
+  text-decoration-line:underline;
+  text-decoration-style:dotted;
+  text-decoration-thickness:1px;
+  text-underline-offset:4px;
+}
+.definition-trigger:hover{
+  text-decoration-style:solid;
+}
+
+.definition-reference,
+.definition-term{
+  color:inherit;
+  text-decoration-line:underline;
+  text-decoration-style:dotted;
+  text-decoration-thickness:1px;
+  text-underline-offset:3px;
+  text-decoration-color:color-mix(in srgb,var(--text) 45%,transparent);
+}
+.definition-reference:hover{
+  text-decoration-style:solid;
+}
+
+.definition-term{
+  display:inline;
+  padding:0;
+  margin:0;
+  border:0;
+  background:none;
+  font:inherit;
+  cursor:pointer;
+}
+.definition-term:hover{
+  text-decoration-style:solid;
+  text-decoration-color:var(--text);
+}
+
+.definition-source-block{
+  scroll-margin-top:90px;
+}
+
+.definition-flash{
+  animation:defFlash 1.55s ease;
+}
+@keyframes defFlash{
+  0%,100%{background:transparent}
+  25%,65%{background:color-mix(in srgb,var(--text) 8%,transparent)}
+}
+
+.definition-modal[hidden]{display:none}
+.definition-modal{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:grid;
+  place-items:center;
+  padding:18px;
+}
+.definition-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.52);
+  backdrop-filter:blur(7px);
+}
+.definition-modal-panel{
+  position:relative;
+  width:min(820px,100%);
+  max-height:min(82vh,900px);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:var(--panel);
+  box-shadow:0 30px 100px rgba(0,0,0,.30);
+}
+.definition-modal-head{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:flex-start;
+  padding:22px 24px 16px;
+  border-bottom:1px solid var(--line);
+}
+.definition-modal-kicker{
+  margin-bottom:5px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.definition-modal-head h2{
+  margin:0;
+  font-size:24px;
+  line-height:1.2;
+  letter-spacing:-.025em;
+}
+.definition-modal-close{
+  flex:0 0 auto;
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--panel2);
+  color:var(--text);
+  font-size:25px;
+  line-height:1;
+  cursor:pointer;
+}
+.definition-modal-body{
+  overflow:auto;
+  padding:20px 24px 10px;
+}
+.definition-modal-body > :first-child{margin-top:0}
+.definition-modal-body > :last-child{margin-bottom:0}
+.definition-modal-body p{margin:1em 0}
+.definition-modal-body pre{
+  overflow:auto;
+  padding:15px;
+  border-radius:13px;
+  background:var(--panel2);
+}
+.definition-modal-body img,
+.definition-modal-body svg{
+  max-width:100%;
+  height:auto;
+}
+.definition-modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  padding:16px 24px 20px;
+  border-top:1px solid var(--line);
+}
+.definition-go,
+.definition-close-secondary{
+  appearance:none;
+  border-radius:11px;
+  padding:10px 14px;
+  font:inherit;
+  font-size:14px;
+  cursor:pointer;
+}
+.definition-go{
+  border:1px solid var(--text);
+  background:var(--text);
+  color:var(--bg);
+  font-weight:700;
+}
+.definition-close-secondary{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  color:var(--text);
+}
+body.definition-modal-open{
+  overflow:hidden;
+}
+
+.toc-static{
+  display:block;
+  padding:5px 10px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.35;
+}
+
+@media(max-width:640px){
+  .definition-modal{
+    padding:8px;
+    align-items:end;
+  }
+  .definition-modal-panel{
+    width:100%;
+    max-height:88vh;
+    border-radius:20px 20px 12px 12px;
+  }
+  .definition-modal-head{padding:18px 18px 14px}
+  .definition-modal-body{padding:16px 18px 8px}
+  .definition-modal-actions{padding:14px 18px 18px}
+}
