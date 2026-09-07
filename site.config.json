@@ -1,0 +1,81 @@
+{
+  "siteTitle": "Учебные материалы",
+  "siteSubtitle": "Конспекты, билеты, лекции и практика",
+  "groups": [
+    {
+      "title": "Математика",
+      "description": "Основные математические дисциплины",
+      "items": [
+        {
+          "title": "Линейная алгебра",
+          "subtitle": "1 семестр · 24 экзаменационных билета",
+          "type": "markdown",
+          "source": "Линейная_алгебра_1_семестр.md",
+          "slug": "linear-algebra-1",
+          "badge": "Билеты"
+        },
+        {
+          "title": "Математический анализ",
+          "subtitle": "Лекции",
+          "type": "pdf",
+          "source": "Matan_lektsii_260214_151518.pdf",
+          "badge": "PDF"
+        },
+        {
+          "title": "Математический анализ",
+          "subtitle": "Практика",
+          "type": "pdf",
+          "source": "Matan_praktika_260209_173531.pdf",
+          "badge": "PDF"
+        },
+        {
+          "title": "АГиТДУ",
+          "subtitle": "Лекции",
+          "type": "pdf",
+          "source": "AGiTDU_lektsii_260214_161319.pdf",
+          "badge": "PDF"
+        },
+        {
+          "title": "АГиТДУ",
+          "subtitle": "Практика",
+          "type": "pdf",
+          "source": "AGiTDU_praktika_260214_161726.pdf",
+          "badge": "PDF"
+        }
+      ]
+    },
+    {
+      "title": "Физика",
+      "description": "Лекции и практические материалы",
+      "items": [
+        {
+          "title": "Физика",
+          "subtitle": "Лекции",
+          "type": "pdf",
+          "source": "Fizika_lektsii_260214_155629.pdf",
+          "badge": "PDF"
+        },
+        {
+          "title": "Физика",
+          "subtitle": "Практика",
+          "type": "pdf",
+          "source": "Fizika_praktika_260214_214542.pdf",
+          "badge": "PDF"
+        }
+      ]
+    },
+    {
+      "title": "Другое",
+      "description": "Дополнительные материалы",
+      "items": [
+        {
+          "title": "Верификация данных",
+          "subtitle": "Лекции",
+          "type": "pdf",
+          "source": "Verifikatsia_dannykh_Lektsii_260214_161939.pdf",
+          "badge": "PDF"
+        }
+      ]
+    }
+  ]
+}
