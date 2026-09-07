@@ -1,73 +1,377 @@
-# GitHub Pages для notes
-
-Сайт полностью статический. Markdown и математика собираются в GitHub Actions, после чего GitHub Pages отдаёт готовые HTML-страницы.
-
-## Что поддерживается
-
-- Markdown-статьи.
-- Формулы `$...$`, `$$...$$`, `\\(...\\)`, `\\[...\\]` и fenced-блоки ` ```math `.
-- MathJax 4 с расширениями AMS, mathtools, physics, mhchem и др.
-- Формулы заранее превращаются в SVG: на клиенте MathJax не запускается.
-- SVG/PNG/JPG/WebP-рисунки из Markdown остаются обычными изображениями и копируются в Pages вместе с `assets/`.
-- Билеты вида `<a id="ticket-N"></a>` + `## Билет N...` автоматически становятся отдельными секциями.
-- У каждого билета есть кнопка «Копировать билет». Она копирует исходный Markdown/LaTeX билета.
-- PDF открываются напрямую как обычные документы.
-
-## Как подключить
-
-Скопировать в корень репозитория:
-
-- `package.json`
-- `site.config.json`
-- папку `site/`
-- папку `.github/workflows/`
-
-После push в `main` workflow соберёт `dist/` и задеплоит его через GitHub Pages.
-
-В настройках GitHub репозитория открыть `Settings → Pages` и выбрать `Source: GitHub Actions`, если это ещё не включено.
-
-## Как добавить новый документ
-
-Добавить файл в репозиторий и одну запись в `site.config.json`.
-
-Для Markdown:
-
-```json
-{
-  "title": "Название",
-  "subtitle": "Краткое описание",
-  "type": "markdown",
-  "source": "file.md",
-  "slug": "page-name",
-  "badge": "Конспект"
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-strong: #ffffff;
+  --surface-soft: #eef1f5;
+  --text: #16181d;
+  --muted: #666d79;
+  --line: #dde1e7;
+  --line-strong: #cdd3dc;
+  --accent: #3157d5;
+  --accent-soft: #e9eeff;
+  --success: #157347;
+  --shadow: 0 12px 40px rgba(28, 35, 50, 0.07);
+  --radius: 20px;
+  --content: 920px;
 }
-```
 
-Для PDF:
-
-```json
-{
-  "title": "Название",
-  "subtitle": "Лекции",
-  "type": "pdf",
-  "source": "file.pdf",
-  "badge": "PDF"
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --surface: rgba(24, 27, 33, 0.94);
+    --surface-strong: #181b21;
+    --surface-soft: #20242b;
+    --text: #f3f5f7;
+    --muted: #a6adb8;
+    --line: #2c313a;
+    --line-strong: #3a414c;
+    --accent: #8ea7ff;
+    --accent-soft: #222b48;
+    --success: #6dd5a5;
+    --shadow: 0 16px 50px rgba(0, 0, 0, 0.22);
+  }
 }
-```
 
-## Билеты
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+}
 
-Рекомендуемый формат в Markdown:
+a { color: inherit; }
+button, input { font: inherit; }
 
-```md
-<a id="ticket-1"></a>
-## Билет 1. Название билета
+.reading-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 100;
+  height: 3px;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: var(--accent);
+}
 
-Содержимое билета...
+.site-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+}
 
-[↑ К содержанию](#содержание)
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 76px;
+}
 
----
-```
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
 
-Сборщик сам создаст отдельный визуальный блок и кнопку копирования.
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.header-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+.header-link:hover { color: var(--text); }
+
+.hero {
+  padding: 72px 0 42px;
+  max-width: 820px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 760;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(42px, 7vw, 76px);
+  line-height: .98;
+  letter-spacing: -0.055em;
+  font-weight: 790;
+}
+
+.hero p {
+  margin: 24px 0 0;
+  max-width: 650px;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.search-wrap { margin-top: 34px; max-width: 560px; }
+.catalog-search {
+  width: 100%;
+  height: 54px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  outline: none;
+  background: var(--surface-strong);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.catalog-search:focus { border-color: var(--accent); }
+.catalog-search::placeholder { color: var(--muted); }
+
+.catalog { padding: 12px 0 84px; }
+.doc-group { margin-top: 48px; }
+.group-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 17px;
+}
+.group-heading h2 {
+  margin: 0;
+  font-size: 23px;
+  letter-spacing: -0.025em;
+}
+.group-heading p { margin: 0; color: var(--muted); font-size: 14px; }
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.doc-card {
+  position: relative;
+  min-height: 176px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-decoration: none;
+  box-shadow: 0 1px 0 rgba(255,255,255,.04);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.doc-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow);
+}
+.doc-card[hidden] { display: none; }
+.doc-card-top { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+.doc-card h3 { margin: 0; font-size: 19px; line-height: 1.25; letter-spacing: -0.025em; }
+.doc-card p { margin: 9px 0 0; color: var(--muted); font-size: 14px; }
+.badge {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.card-arrow { color: var(--muted); font-size: 23px; line-height: 1; }
+
+.article-header {
+  padding: 40px 0 30px;
+  border-bottom: 1px solid var(--line);
+}
+.article-header h1 {
+  max-width: 980px;
+  margin: 16px 0 8px;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+.article-header p { margin: 0; color: var(--muted); }
+.back-link { color: var(--muted); text-decoration: none; font-size: 14px; }
+.back-link:hover { color: var(--text); }
+
+.article-layout {
+  width: min(1260px, calc(100% - 32px));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 250px minmax(0, var(--content));
+  gap: 56px;
+  align-items: start;
+  padding: 38px 0 96px;
+}
+
+.article-layout-single {
+  grid-template-columns: minmax(0, var(--content));
+  justify-content: center;
+}
+
+.toc {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding-right: 8px;
+}
+.toc-title { margin: 0 0 11px; color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.toc-list { display: grid; gap: 2px; }
+.toc-link {
+  display: block;
+  padding: 7px 9px;
+  border-radius: 9px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.toc-link:hover, .toc-link.is-active { background: var(--surface-soft); color: var(--text); }
+
+.article-body { min-width: 0; }
+.article-body > :first-child { margin-top: 0; }
+.article-body h1, .article-body h2, .article-body h3, .article-body h4 {
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 30px;
+}
+.article-body h1 { font-size: 38px; margin: 0 0 20px; }
+.article-body h2 { font-size: 29px; margin: 42px 0 18px; }
+.article-body h3 { font-size: 21px; margin: 30px 0 12px; }
+.article-body h4 { font-size: 17px; margin: 24px 0 10px; }
+.article-body p { margin: 12px 0; }
+.article-body ul, .article-body ol { padding-left: 24px; }
+.article-body li + li { margin-top: 5px; }
+.article-body blockquote {
+  margin: 20px 0;
+  padding: 14px 18px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+.article-body code:not(pre code) {
+  padding: .14em .38em;
+  border-radius: 6px;
+  background: var(--surface-soft);
+  font-size: .9em;
+}
+.article-body pre {
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-strong);
+}
+.article-body hr { border: 0; border-top: 1px solid var(--line); margin: 36px 0; }
+.article-body img, .article-body svg { max-width: 100%; height: auto; }
+.article-body p[align="center"] { overflow-x: auto; }
+.article-body table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+.article-body th, .article-body td { padding: 10px 12px; border: 1px solid var(--line); text-align: left; }
+
+.math-display {
+  margin: 18px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0 10px;
+  text-align: center;
+}
+.math-inline { display: inline-block; max-width: 100%; vertical-align: -0.08em; }
+.math-display mjx-container, .math-inline mjx-container { max-width: none; }
+.math-display svg, .math-inline svg { max-width: none; }
+.math-error {
+  display: inline-block;
+  padding: 4px 7px;
+  border: 1px solid #d34b4b;
+  border-radius: 7px;
+  color: #d34b4b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .9em;
+}
+
+.ticket {
+  position: relative;
+  margin: 38px 0;
+  padding: 30px clamp(18px, 4vw, 34px) 34px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 1px 0 rgba(255,255,255,.04);
+  scroll-margin-top: 20px;
+}
+.ticket > h2:first-of-type { margin-top: 0; padding-right: 150px; }
+.ticket-actions {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+}
+.copy-ticket {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 8px 11px;
+  background: var(--surface-strong);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 720;
+}
+.copy-ticket:hover { color: var(--text); border-color: var(--line-strong); }
+.copy-ticket.is-copied { color: var(--success); }
+.ticket-source { display: none; }
+.ticket .top-link { color: var(--muted); font-size: 13px; }
+
+.site-footer { padding: 28px 0 50px; color: var(--muted); font-size: 13px; }
+
+@media (max-width: 980px) {
+  .doc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .article-layout { grid-template-columns: 1fr; gap: 18px; }
+  .toc {
+    position: relative;
+    top: 0;
+    max-height: none;
+    overflow-x: auto;
+    padding: 0 0 10px;
+  }
+  .toc-list { display: flex; gap: 6px; min-width: max-content; }
+  .toc-link { max-width: 210px; }
+}
+
+@media (max-width: 640px) {
+  .site-shell, .article-layout { width: min(100% - 22px, 1180px); }
+  .site-header { min-height: 64px; }
+  .hero { padding: 46px 0 28px; }
+  .hero h1 { font-size: 44px; }
+  .hero p { font-size: 16px; }
+  .doc-grid { grid-template-columns: 1fr; }
+  .doc-card { min-height: 146px; }
+  .group-heading { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .article-header { padding-top: 26px; }
+  .ticket { border-radius: 18px; padding-top: 68px; }
+  .ticket > h2:first-of-type { padding-right: 0; }
+  .ticket-actions { top: 18px; left: 18px; right: auto; }
+  .article-body h2 { font-size: 25px; }
+}
