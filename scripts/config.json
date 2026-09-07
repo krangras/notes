@@ -19,6 +19,13 @@
       "subtitle": "1 семестр",
       "badge": "Конспект",
       "slug": "discrete-math-1"
+    },
+    {
+      "file": "Алгебра_геометрия_и_ТДУ_полный_конспект.md",
+      "title": "АГиТДУ",
+      "subtitle": "Полный конспект лекций",
+      "badge": "Конспект",
+      "slug": "agitdu-full"
     }
   ],
   "groups": [
@@ -28,6 +35,7 @@
       "items": [
         { "title": "Линейная алгебра", "subtitle": "1 семестр · конспект", "badge": "Конспект", "kind": "note", "slug": "linear-algebra-1" },
         { "title": "Дискретная математика", "subtitle": "1 семестр · конспект", "badge": "Конспект", "kind": "note", "slug": "discrete-math-1" },
+        { "title": "АГиТДУ", "subtitle": "Полный конспект лекций", "badge": "Конспект", "kind": "note", "slug": "agitdu-full" },
         { "title": "Математический анализ", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "Matan_lektsii_260214_151518.pdf" },
         { "title": "Математический анализ", "subtitle": "Практика", "badge": "PDF", "kind": "pdf", "file": "Matan_praktika_260209_173531.pdf" },
         { "title": "АГиТДУ", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "AGiTDU_lektsii_260214_161319.pdf" },
