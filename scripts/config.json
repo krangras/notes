@@ -1,0 +1,53 @@
+{
+  "siteTitle": "Учебные материалы",
+  "siteDescription": "Конспекты, билеты, лекции и практика — в одном месте.",
+  "repoUrl": "https://github.com/krangras/notes",
+  "sourceDir": ".",
+  "outputDir": "dist",
+  "notesDir": "notes",
+  "notes": [
+    {
+      "file": "Линейная_алгебра_1_семестр.md",
+      "title": "Линейная алгебра",
+      "subtitle": "1 семестр · экзаменационные билеты",
+      "badge": "Конспект",
+      "slug": "linear-algebra-1"
+    },
+    {
+      "file": "Дискретная_математика_1_семестр.md",
+      "title": "Дискретная математика",
+      "subtitle": "1 семестр",
+      "badge": "Конспект",
+      "slug": "discrete-math-1"
+    }
+  ],
+  "groups": [
+    {
+      "title": "Математика",
+      "description": "Основные математические дисциплины",
+      "items": [
+        { "title": "Линейная алгебра", "subtitle": "1 семестр · конспект", "badge": "Конспект", "kind": "note", "slug": "linear-algebra-1" },
+        { "title": "Дискретная математика", "subtitle": "1 семестр · конспект", "badge": "Конспект", "kind": "note", "slug": "discrete-math-1" },
+        { "title": "Математический анализ", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "Matan_lektsii_260214_151518.pdf" },
+        { "title": "Математический анализ", "subtitle": "Практика", "badge": "PDF", "kind": "pdf", "file": "Matan_praktika_260209_173531.pdf" },
+        { "title": "АГиТДУ", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "AGiTDU_lektsii_260214_161319.pdf" },
+        { "title": "АГиТДУ", "subtitle": "Практика", "badge": "PDF", "kind": "pdf", "file": "AGiTDU_praktika_260214_161726.pdf" }
+      ]
+    },
+    {
+      "title": "Физика",
+      "description": "Лекции и практические материалы",
+      "items": [
+        { "title": "Физика", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "Fizika_lektsii_260214_155629.pdf" },
+        { "title": "Физика", "subtitle": "Практика", "badge": "PDF", "kind": "pdf", "file": "Fizika_praktika_260214_214542.pdf" }
+      ]
+    },
+    {
+      "title": "Прочее",
+      "description": "Дополнительные материалы",
+      "items": [
+        { "title": "Верификация данных", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "Verifikatsia_dannykh_Lektsii_260214_161939.pdf" }
+      ]
+    }
+  ]
+}

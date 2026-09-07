@@ -1,0 +1,14 @@
+{
+  "name": "notes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Статическая сборка конспектов с MathJax на сервере",
+  "type": "commonjs",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.0",
+    "mathjax-full": "^3.2.2"
+  }
+}
