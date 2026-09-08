@@ -121,40 +121,57 @@ function assignHeadingIds(html, sections) {
   });
 }
 
-function wrapTickets(html, source) {
-  const re = /<a\s+id="ticket-(\d+)"\s*><\/a>/gi;
+function prepareSource(source) {
+  if (/<a\s+id="ticket-\d+"\s*><\/a>/i.test(source)) {
+    return { source, unit: 'ticket', re: /<a\s+id="ticket-(\d+)"\s*><\/a>/gi };
+  }
+  if (/^#{3}\s+§/m.test(source)) {
+    let n = 0;
+    const out = source.replace(/^#{3}\s+§.*$/gm, m => `<a id="paragraph-${++n}"></a>\n${m}`);
+    return { source: out, unit: 'paragraph', re: /<a\s+id="paragraph-(\d+)"\s*><\/a>/gi };
+  }
+  return { source, unit: null, re: null };
+}
+
+function wrapCopySections(html, source, re, unit) {
   if (!re.test(html)) return html;
   re.lastIndex = 0;
 
-  const srcRe = /<a\s+id="ticket-(\d+)"\s*><\/a>/gi;
-  const srcMatches = [...source.matchAll(srcRe)];
-  const srcSplits = source.split(srcRe);
-
+  const label = unit === 'paragraph' ? 'параграф' : 'билет';
+  const srcMatches = [...source.matchAll(re)];
+  const srcSplits = source.split(re);
   const parts = html.split(re);
+
   let out = parts[0];
   for (let i = 1; i < parts.length; i += 2) {
     const num = parts[i];
     const seg = parts[i + 1] ?? '';
-    const rawTicket = srcMatches[(i - 1) / 2] ? (srcSplits[(i - 1) / 2 + 1] ?? '').replace(/\n?\[↑\s*К содержанию\]\([^\n]+\)\s*/gi, '\n').replace(/\n?\s*---\s*$/g, '').trim() : '';
+    const raw = srcMatches[(i - 1) / 2]
+      ? (srcSplits[(i - 1) / 2 + 1] ?? '')
+          .replace(/\n?\[↑\s*К содержанию\]\([^\n]+\)\s*/gi, '\n')
+          .replace(/\n?\s*---\s*$/g, '')
+          .trim()
+      : '';
     out += `
-    <section class="ticket" id="ticket-${num}">
-      <div class="ticket-actions">
-        <button class="copy-ticket" type="button" data-copy-ticket="${num}">Копировать билет</button>
+    <section class="copy-section" id="${unit}-${num}">
+      <div class="copy-actions">
+        <button class="copy-btn" type="button" data-copy-id="${num}" data-copy-label="Копировать ${label}">Копировать ${label}</button>
       </div>
       ${seg}
-      <textarea class="ticket-source" hidden>${esc(rawTicket)}</textarea>
+      <textarea class="copy-source" hidden>${esc(raw)}</textarea>
     </section>`;
   }
   return out;
 }
 
-function markdownToStaticHtml(source) {
-  const { s, math } = stashMath(source.replace(/\r\n/g, '\n'));
+function markdownToStaticHtml(sourceRaw) {
+  const { source, unit, re } = prepareSource(sourceRaw.replace(/\r\n/g, '\n'));
+  const { s, math } = stashMath(source);
   const sections = parseSections(source);
   let html = md.render(s);
   html = assignHeadingIds(html, sections);
   html = restoreMath(html, math);
-  html = wrapTickets(html, source);
+  if (unit) html = wrapCopySections(html, source, re, unit);
   return { html, sections };
 }
 
@@ -233,11 +250,12 @@ function notePage({ note, content, sections }) {
     }, { passive: true });
   }
   document.addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-copy-ticket]');
+    var btn = e.target.closest('[data-copy-id]');
     if (!btn) return;
-    var box = btn.closest('.ticket').querySelector('.ticket-source');
+    var box = btn.closest('.copy-section').querySelector('.copy-source');
     if (!box) return;
     var text = box.value;
+    var orig = btn.getAttribute('data-copy-label') || 'Копировать';
     (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
       .catch(function () {
         var ta = document.createElement('textarea');
@@ -251,7 +269,7 @@ function notePage({ note, content, sections }) {
       });
     btn.classList.add('is-copied');
     btn.textContent = 'Скопировано ✓';
-    setTimeout(function () { btn.classList.remove('is-copied'); btn.textContent = 'Копировать билет'; }, 1300);
+    setTimeout(function () { btn.classList.remove('is-copied'); btn.textContent = orig; }, 1300);
   });
 })();
 </script>

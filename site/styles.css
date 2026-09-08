@@ -592,7 +592,7 @@ button, input { font: inherit; }
   font-size: .9em;
 }
 
-.ticket {
+.copy-section {
   position: relative;
   margin: 38px 0;
   padding: 30px clamp(18px, 4vw, 34px) 34px;
@@ -602,13 +602,14 @@ button, input { font: inherit; }
   box-shadow: 0 1px 0 rgba(255,255,255,.04);
   scroll-margin-top: 20px;
 }
-.ticket > h2:first-of-type { margin-top: 0; padding-right: 150px; }
-.ticket-actions {
+.copy-section > h2:first-of-type,
+.copy-section > h3:first-of-type { margin-top: 0; padding-right: 150px; }
+.copy-actions {
   position: absolute;
   top: 22px;
   right: 22px;
 }
-.copy-ticket {
+.copy-btn {
   border: 1px solid var(--line);
   border-radius: 11px;
   padding: 8px 11px;
@@ -618,10 +619,10 @@ button, input { font: inherit; }
   font-size: 12px;
   font-weight: 720;
 }
-.copy-ticket:hover { color: var(--text); border-color: var(--line-strong); }
-.copy-ticket.is-copied { color: var(--success); }
-.ticket-source { display: none; }
-.ticket .top-link { color: var(--muted); font-size: 13px; }
+.copy-btn:hover { color: var(--text); border-color: var(--line-strong); }
+.copy-btn.is-copied { color: var(--success); }
+.copy-source { display: none; }
+.copy-section .top-link { color: var(--muted); font-size: 13px; }
 
 @media (max-width: 980px) {
   .doc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -647,8 +648,9 @@ button, input { font: inherit; }
   .doc-card { min-height: 146px; }
   .group-heading { align-items: flex-start; flex-direction: column; gap: 3px; }
   .article-header { padding-top: 26px; }
-  .ticket { border-radius: 18px; padding-top: 68px; }
-  .ticket > h2:first-of-type { padding-right: 0; }
-  .ticket-actions { top: 18px; left: 18px; right: auto; }
+  .copy-section { border-radius: 18px; padding-top: 68px; }
+  .copy-section > h2:first-of-type,
+  .copy-section > h3:first-of-type { padding-right: 0; }
+  .copy-actions { top: 18px; left: 18px; right: auto; }
   .article-body h2 { font-size: 25px; }
 }
