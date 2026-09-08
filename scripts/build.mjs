@@ -188,7 +188,7 @@ function notePage({ note, content, sections }) {
 
 <main class="site-shell">
   <header class="article-header">
-    <a class="back-link" href="./">← Все материалы</a>
+    <a class="back-link" href="./${note.semester ? '?sem=' + note.semester : ''}">← Все материалы</a>
     <h1>${esc(note.title)}</h1>
     <p>${esc(note.subtitle)}</p>
   </header>
@@ -242,23 +242,72 @@ function notePage({ note, content, sections }) {
 </html>`;
 }
 
+function semCount(sem) {
+  return sem.subjects.reduce((n, s) => n + (s.items?.length || 0), 0);
+}
+
+function plural(n, one, few, many) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
+
 function indexPage() {
-  const cards = config.groups.map(g => `
-    <section class="doc-group">
-      <div class="group-heading"><div><h2>${esc(g.title)}</h2><p>${esc(g.description)}</p></div></div>
-      <div class="doc-grid">
-        ${g.items.map(it => {
-          const href = it.kind === 'note'
-            ? `./${it.slug}.html`
-            : `./${encodeURI(it.file)}`;
-          const target = it.kind === 'pdf' ? ' target="_blank" rel="noopener"' : '';
-          return `<a class="doc-card" data-card data-key="${esc((it.title + ' ' + it.subtitle + ' ' + g.title).toLowerCase())}" href="${href}"${target}>
-            <div class="doc-card-top"><div><h3>${esc(it.title)}</h3><p>${esc(it.subtitle)}</p></div></div>
-            <div class="doc-card-top"><span class="badge">${esc(it.badge)}</span><span class="card-arrow">↗</span></div>
-          </a>`;
-        }).join('')}
-      </div>
-    </section>`).join('');
+  const typeByKey = new Map(config.types.map(t => [t.key, t]));
+  const semesterCounts = new Map(config.semesters.map(s => [s.number, semCount(s)]));
+
+  const tabs = config.semesters.map(s => {
+    const count = semesterCounts.get(s.number) || 0;
+    return `<button type="button" class="sem-tab" data-sem="${s.number}" role="tab"
+              aria-selected="false" aria-controls="sem-panel-${s.number}">
+      <span class="sem-name">${s.number} семестр</span>
+      ${count ? `<span class="sem-count">${count}</span>` : ''}
+    </button>`;
+  }).join('');
+
+  const panels = config.semesters.map(s => {
+    const count = semesterCounts.get(s.number) || 0;
+
+    if (!s.subjects.length) {
+      return `<div class="sem-panel" id="sem-panel-${s.number}" data-sem="${s.number}" role="tabpanel" hidden>
+        <div class="sem-empty">
+          <div class="sem-empty-mark">${s.number}</div>
+          <h3>Пока пусто</h3>
+          <p>Материалы по ${s.number}-му семестру появятся позже.</p>
+        </div>
+      </div>`;
+    }
+
+    const groups = s.subjects.map(subj => `
+      <section class="doc-group" data-group>
+        <div class="group-heading"><h2>${esc(subj.title)}</h2><p>${subj.items.length} ${plural(subj.items.length, 'материал', 'материала', 'материалов')}</p></div>
+        <div class="doc-grid">
+          ${subj.items.map(it => {
+            const type = typeByKey.get(it.type);
+            const tlabel = esc(type ? type.label : it.type);
+            const tkey = type ? ` type-${esc(type.key)}` : '';
+            const href = it.kind === 'note'
+              ? `./${it.slug}.html?sem=${s.number}`
+              : `./${encodeURI(it.file)}`;
+            const target = it.kind === 'pdf' ? ' target="_blank" rel="noopener"' : '';
+            const kind = it.kind === 'note' ? 'Конспект' : 'PDF';
+            return `<a class="doc-card" data-card data-key="${esc((it.title + ' ' + tlabel + ' ' + subj.title).toLowerCase())}" href="${href}"${target}>
+              <div class="doc-card-top">
+                <div class="doc-card-title"><h3>${esc(it.title)}</h3><span class="type-chip${tkey}">${tlabel}</span></div>
+              </div>
+              <div class="doc-card-bottom">
+                <span class="badge">${kind}</span>
+                <span class="card-arrow">↗</span>
+              </div>
+            </a>`;
+          }).join('')}
+        </div>
+      </section>`).join('');
+
+    return `<div class="sem-panel" id="sem-panel-${s.number}" data-sem="${s.number}" role="tabpanel" data-count="${count}" hidden>${groups}</div>`;
+  }).join('');
 
   return `<!doctype html>
 <html lang="ru">
@@ -272,21 +321,27 @@ function indexPage() {
 </head>
 <body>
 <header class="site-header">
-  <a class="brand" href="./"><span class="brand-mark">N</span><span>notes</span></a>
+  <a class="brand" href="./"><span class="brand-mark">ИИ</span><span>${esc(config.siteTitle)}</span></a>
   <a class="header-link" href="${esc(config.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>
 </header>
 
 <main class="site-shell">
   <section class="hero">
-    <p class="eyebrow">Личный справочник</p>
+    <p class="eyebrow">Образовательная программа</p>
     <h1>${esc(config.siteTitle)}</h1>
     <p>${esc(config.siteDescription)}</p>
-    <div class="search-wrap">
-      <input id="catalogSearch" class="catalog-search" type="search" placeholder="Найти дисциплину или материал…">
-    </div>
   </section>
-  <section class="catalog">
-    ${cards}
+
+  <nav class="sem-tabs" id="semTabs" role="tablist" aria-label="Семестры">
+    ${tabs}
+  </nav>
+
+  <div class="search-wrap">
+    <input id="catalogSearch" class="catalog-search" type="search" placeholder="Найти дисциплину или материал — лекции, практику, теорию к экзамену…">
+  </div>
+
+  <section class="catalog" id="catalog">
+    ${panels}
   </section>
 </main>
 
@@ -296,17 +351,82 @@ function indexPage() {
 
 <script>
 (function () {
-  var input = document.getElementById('catalogSearch');
-  if (!input) return;
-  input.addEventListener('input', function () {
-    var q = input.value.trim().toLowerCase();
-    document.querySelectorAll('[data-card]').forEach(function (card) {
-      card.hidden = q && !card.dataset.key.includes(q);
+  var COOKIE = 'notes_semester';
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.sem-tab'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.sem-panel'));
+  var search = document.getElementById('catalogSearch');
+
+  function getCookie(name) {
+    var m = document.cookie.match('(?:^|;\\\\s*)' + name + '=([^;]*)');
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+
+  function setCookie(name, value) {
+    document.cookie = name + '=' + encodeURIComponent(value) +
+      '; path=/; max-age=31536000; SameSite=Lax';
+  }
+
+  function currentSem() {
+    var params = new URLSearchParams(location.search);
+    return params.get('sem') || getCookie(COOKIE);
+  }
+
+  function applySearch(panel) {
+    if (!search || !search.value) return;
+    var q = search.value.trim().toLowerCase();
+    if (!q) return;
+    panel.querySelectorAll('[data-card]').forEach(function (c) {
+      c.hidden = !c.dataset.key.includes(q);
     });
-    document.querySelectorAll('.doc-group').forEach(function (g) {
-      g.hidden = [...g.querySelectorAll('[data-card]')].every(function (c) { return c.hidden; });
+    panel.querySelectorAll('.doc-group').forEach(function (g) {
+      g.hidden = g.querySelectorAll('[data-card]:not([hidden])').length === 0;
+    });
+  }
+
+  function activate(num) {
+    panels.forEach(function (p) {
+      p.hidden = p.dataset.sem !== num;
+    });
+    tabs.forEach(function (t) {
+      t.setAttribute('aria-selected', String(t.dataset.sem === num));
+    });
+    var active = panels.filter(function (p) { return p.dataset.sem === num; })[0];
+    if (active) applySearch(active);
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var num = tab.dataset.sem;
+      activate(num);
+      setCookie(COOKIE, num);
+      var u = new URL(location.href);
+      u.searchParams.set('sem', num);
+      history.replaceState(null, '', u);
     });
   });
+
+  if (search) {
+    search.addEventListener('input', function () {
+      var active = panels.filter(function (p) { return !p.hidden; })[0];
+      if (!active) return;
+      var q = search.value.trim().toLowerCase();
+      active.querySelectorAll('[data-card]').forEach(function (c) {
+        c.hidden = q && !c.dataset.key.includes(q);
+      });
+      active.querySelectorAll('.doc-group').forEach(function (g) {
+        g.hidden = [...g.querySelectorAll('[data-card]')].every(function (c) { return c.hidden; });
+      });
+    });
+  }
+
+  var sem = currentSem();
+  if (!tabs.some(function (t) { return t.dataset.sem === sem; })) {
+    sem = tabs.length ? tabs[0].dataset.sem : '1';
+  }
+  var u = new URL(location.href);
+  u.searchParams.set('sem', sem);
+  history.replaceState(null, '', u);
+  activate(sem);
 })();
 </script>
 </body>
@@ -345,11 +465,15 @@ function main() {
   }
   fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
 
-  for (const group of config.groups) {
-    for (const item of group.items) {
-      if (item.kind === 'pdf') {
+  for (const sem of config.semesters) {
+    for (const subject of sem.subjects) {
+      for (const item of subject.items) {
+        if (item.kind !== 'pdf') continue;
         const src = path.join(ROOT, item.file);
-        if (fs.existsSync(src)) fs.copyFileSync(src, path.join(OUT, item.file));
+        if (!fs.existsSync(src)) continue;
+        const dst = path.join(OUT, item.file);
+        fs.mkdirSync(path.dirname(dst), { recursive: true });
+        fs.copyFileSync(src, dst);
       }
     }
   }

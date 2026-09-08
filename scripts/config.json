@@ -1,6 +1,6 @@
 {
-  "siteTitle": "Учебные материалы",
-  "siteDescription": "Конспекты, билеты, лекции и практика — в одном месте.",
+  "siteTitle": "Алгоритмы искусственного интеллекта",
+  "siteDescription": "Конспекты, билеты, лекции и практика — по семестрам и предметам, в одном месте.",
   "repoUrl": "https://github.com/krangras/notes",
   "sourceDir": ".",
   "outputDir": "dist",
@@ -9,53 +9,86 @@
     {
       "file": "Линейная_алгебра_1_семестр.md",
       "title": "Линейная алгебра",
-      "subtitle": "1 семестр · экзаменационные билеты",
-      "badge": "Конспект",
-      "slug": "linear-algebra-1"
+      "subtitle": "1 семестр · теория к экзамену",
+      "badge": "Теория к экзамену",
+      "slug": "linear-algebra-1",
+      "semester": 1
     },
     {
       "file": "Дискретная_математика_1_семестр.md",
       "title": "Дискретная математика",
-      "subtitle": "1 семестр",
-      "badge": "Конспект",
-      "slug": "discrete-math-1"
+      "subtitle": "1 семестр · теория к экзамену",
+      "badge": "Теория к экзамену",
+      "slug": "discrete-math-1",
+      "semester": 1
     },
     {
       "file": "Алгебра_геометрия_и_ТДУ_полный_конспект.md",
       "title": "АГиТДУ",
-      "subtitle": "Полный конспект лекций",
-      "badge": "Конспект",
-      "slug": "agitdu-full"
+      "subtitle": "2 семестр · конспект лекций",
+      "badge": "Лекции",
+      "slug": "agitdu-full",
+      "semester": 2
     }
   ],
-  "groups": [
+  "types": [
+    { "key": "lecture", "label": "Лекции" },
+    { "key": "practice", "label": "Практика" },
+    { "key": "theory", "label": "Теория к экзамену" },
+    { "key": "practice-exam", "label": "Практика к экзамену" }
+  ],
+  "semesters": [
     {
-      "title": "Математика",
-      "description": "Основные математические дисциплины",
-      "items": [
-        { "title": "Линейная алгебра", "subtitle": "1 семестр · конспект", "badge": "Конспект", "kind": "note", "slug": "linear-algebra-1" },
-        { "title": "Дискретная математика", "subtitle": "1 семестр · конспект", "badge": "Конспект", "kind": "note", "slug": "discrete-math-1" },
-        { "title": "АГиТДУ", "subtitle": "Полный конспект лекций", "badge": "Конспект", "kind": "note", "slug": "agitdu-full" },
-        { "title": "Математический анализ", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "Matan_lektsii_260214_151518.pdf" },
-        { "title": "Математический анализ", "subtitle": "Практика", "badge": "PDF", "kind": "pdf", "file": "Matan_praktika_260209_173531.pdf" },
-        { "title": "АГиТДУ", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "AGiTDU_lektsii_260214_161319.pdf" },
-        { "title": "АГиТДУ", "subtitle": "Практика", "badge": "PDF", "kind": "pdf", "file": "AGiTDU_praktika_260214_161726.pdf" }
+      "number": 1,
+      "subjects": [
+        {
+          "title": "Математика",
+          "items": [
+            { "title": "Линейная алгебра", "type": "theory", "kind": "note", "slug": "linear-algebra-1" },
+            { "title": "Дискретная математика", "type": "theory", "kind": "note", "slug": "discrete-math-1" },
+            { "title": "Дискретная математика", "type": "lecture", "kind": "pdf", "file": "notes/1st_semester/Дискретная Математика Лекции.pdf" },
+            { "title": "Дискретная математика", "type": "practice", "kind": "pdf", "file": "notes/1st_semester/Дискртеная Математика Практики.pdf" },
+            { "title": "Математический анализ", "type": "lecture", "kind": "pdf", "file": "notes/1st_semester/Математика_Лекции_Конспекты.pdf" },
+            { "title": "Математический анализ", "type": "practice", "kind": "pdf", "file": "notes/1st_semester/Математика_Практики_Конспекты.pdf" },
+            { "title": "Математический анализ", "type": "theory", "kind": "pdf", "file": "notes/1st_semester/Математика_теория_к_экзамену.pdf" },
+            { "title": "Математический анализ", "type": "practice-exam", "kind": "pdf", "file": "notes/1st_semester/Матан_практика_экзамен.pdf" }
+          ]
+        }
       ]
     },
     {
-      "title": "Физика",
-      "description": "Лекции и практические материалы",
-      "items": [
-        { "title": "Физика", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "Fizika_lektsii_260214_155629.pdf" },
-        { "title": "Физика", "subtitle": "Практика", "badge": "PDF", "kind": "pdf", "file": "Fizika_praktika_260214_214542.pdf" }
+      "number": 2,
+      "subjects": [
+        {
+          "title": "Математика",
+          "items": [
+            { "title": "АГиТДУ", "type": "lecture", "kind": "note", "slug": "agitdu-full" },
+            { "title": "АГиТДУ", "type": "lecture", "kind": "pdf", "file": "notes/2nd_semester/АГиТДУ лекции _260529_104241.pdf" },
+            { "title": "АГиТДУ", "type": "practice", "kind": "pdf", "file": "notes/2nd_semester/АГиТДУ практика _260529_134811.pdf" },
+            { "title": "АГиТДУ", "type": "theory", "kind": "pdf", "file": "notes/2nd_semester/АГИТДУ теория к экзамену _260605_212936.pdf" },
+            { "title": "Математический анализ", "type": "lecture", "kind": "pdf", "file": "notes/2nd_semester/Матан лекции_260516_132052.pdf" },
+            { "title": "Математический анализ", "type": "practice", "kind": "pdf", "file": "notes/2nd_semester/Матан практика _260524_123935.pdf" }
+          ]
+        },
+        {
+          "title": "Физика",
+          "items": [
+            { "title": "Физика", "type": "lecture", "kind": "pdf", "file": "notes/2nd_semester/Физика лекции _260529_092032.pdf" }
+          ]
+        },
+        {
+          "title": "Другое",
+          "items": [
+            { "title": "Верификация данных", "type": "lecture", "kind": "pdf", "file": "notes/2nd_semester/Верификация данных Лекции _260523_170722.pdf" }
+          ]
+        }
       ]
     },
-    {
-      "title": "Прочее",
-      "description": "Дополнительные материалы",
-      "items": [
-        { "title": "Верификация данных", "subtitle": "Лекции", "badge": "PDF", "kind": "pdf", "file": "Verifikatsia_dannykh_Lektsii_260214_161939.pdf" }
-      ]
-    }
+    { "number": 3, "subjects": [] },
+    { "number": 4, "subjects": [] },
+    { "number": 5, "subjects": [] },
+    { "number": 6, "subjects": [] },
+    { "number": 7, "subjects": [] },
+    { "number": 8, "subjects": [] }
   ]
 }
