@@ -226,7 +226,7 @@ function notePage({ note, content, sections }) {
   <a class="header-link" href="${esc(config.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>
 </header>
 
-<main class="site-shell">
+<main class="site-shell site-shell-article">
   <header class="article-header">
     <a class="back-link" href="./${note.semester ? '?sem=' + note.semester : ''}">← Все материалы</a>
     <h1>${esc(note.title)}</h1>
