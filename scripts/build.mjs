@@ -323,6 +323,7 @@ function docPage({ item, sem, subject }) {
 
 function indexPage() {
   const typeByKey = new Map(config.types.map(t => [t.key, t]));
+  const noteFileBySlug = new Map(config.notes.map(n => [n.slug, n.file]));
   const semesterCounts = new Map(config.semesters.map(s => [s.number, semCount(s)]));
 
   const tabs = config.semesters.map(s => {
@@ -357,30 +358,22 @@ function indexPage() {
             const tkey = type ? ` type-${esc(type.key)}` : '';
             const kind = it.kind === 'note' ? 'Конспект' : 'PDF';
             const pageHref = `./${it.slug}.html?sem=${s.number}`;
+            const downloadHref = it.kind === 'note'
+              ? `./${encodeURI(noteFileBySlug.get(it.slug))}`
+              : `./${encodeURI(it.file)}`;
+            const dlTitle = it.kind === 'note' ? 'Скачать конспект' : 'Скачать PDF';
             const dataKey = esc((it.title + ' ' + tlabel + ' ' + subj.title).toLowerCase());
-            if (it.kind === 'pdf') {
-              return `<div class="doc-card has-dl" data-card data-key="${dataKey}">
-                <a class="doc-card-link" href="${pageHref}">
-                  <div class="doc-card-top">
-                    <div class="doc-card-title"><h3>${esc(it.title)}</h3><span class="type-chip${tkey}">${tlabel}</span></div>
-                  </div>
-                  <div class="doc-card-bottom">
-                    <span class="badge">${kind}</span>
-                    <span class="card-arrow">→</span>
-                  </div>
-                </a>
-                <a class="card-dl" href="./${encodeURI(it.file)}" download title="Скачать ${kind}" aria-label="Скачать ${kind}">↓</a>
-              </div>`;
-            }
-            return `<a class="doc-card" data-card data-key="${dataKey}" href="${pageHref}">
-              <div class="doc-card-top">
-                <div class="doc-card-title"><h3>${esc(it.title)}</h3><span class="type-chip${tkey}">${tlabel}</span></div>
-              </div>
-              <div class="doc-card-bottom">
-                <span class="badge">${kind}</span>
-                <span class="card-arrow">→</span>
-              </div>
-            </a>`;
+            return `<div class="doc-card has-dl" data-card data-key="${dataKey}">
+              <a class="doc-card-link" href="${pageHref}">
+                <div class="doc-card-top">
+                  <div class="doc-card-title"><h3>${esc(it.title)}</h3><span class="type-chip${tkey}">${tlabel}</span></div>
+                </div>
+                <div class="doc-card-bottom">
+                  <span class="badge">${kind}</span>
+                </div>
+              </a>
+              <a class="card-dl" href="${downloadHref}" download title="${dlTitle}" aria-label="${dlTitle}">↓</a>
+            </div>`;
           }).join('')}
         </div>
       </section>`).join('');
@@ -533,6 +526,7 @@ function main() {
     if (source.charCodeAt(0) === 0xfeff) source = source.slice(1);
     const { html, sections } = markdownToStaticHtml(source);
     fs.writeFileSync(path.join(OUT, `${note.slug}.html`), notePage({ note, content: html, sections }));
+    fs.copyFileSync(full, path.join(OUT, path.basename(note.file)));
     notesBySlug.set(note.slug, { note, sections });
   }
 

@@ -8,7 +8,7 @@
   "notes": [
     {
       "file": "Линейная_алгебра_1_семестр.md",
-      "title": "Линейная алгебра",
+      "title": "АГиТДУ теория к экзамену",
       "subtitle": "1 семестр · теория к экзамену",
       "badge": "Теория к экзамену",
       "slug": "linear-algebra-1",
@@ -45,7 +45,9 @@
           "title": "Алгебра, геометрия и ТДУ (АГиТДУ)",
           "items": [
             { "title": "АГиТДУ", "type": "lecture", "kind": "note", "slug": "agitdu-full" },
-            { "title": "Линейная алгебра", "type": "theory", "kind": "note", "slug": "linear-algebra-1" }
+            { "title": "АГиТДУ теория к экзамену", "type": "theory", "kind": "note", "slug": "linear-algebra-1" },
+            { "title": "АГиТДУ практика", "type": "practice", "kind": "pdf", "slug": "agitdu-practice-sem1", "file": "notes/1st_semester/Алгебра,_геометрия_и_теория_дифф_уравнений_Практика.pdf" },
+            { "title": "АГиТДУ практика к экзамену", "type": "practice-exam", "kind": "pdf", "slug": "agitdu-practice-exam-sem1", "file": "notes/1st_semester/Praktika_algebra_ekzamen_260108_164959_260216_211339.pdf" }
           ]
         },
         {

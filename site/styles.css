@@ -365,7 +365,7 @@ button, input { font: inherit; }
 .card-arrow { color: var(--muted); font-size: 23px; line-height: 1; }
 
 .doc-card-link { display: block; height: 100%; text-decoration: none; color: inherit; }
-.doc-card.has-dl .doc-card-bottom { margin-right: 50px; }
+.doc-card-bottom { margin-right: 50px; }
 
 .card-dl {
   position: absolute;
