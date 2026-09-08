@@ -520,6 +520,7 @@ button, input { font: inherit; }
   line-height: 1.35;
 }
 .toc-link:hover, .toc-link.is-active { background: var(--surface-soft); color: var(--text); }
+.toc-link svg { display: inline-block; max-width: 100%; vertical-align: middle; }
 .toc-level-1 { font-weight: 740; }
 .toc-level-2 {
   font-weight: 640;

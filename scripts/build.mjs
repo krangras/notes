@@ -158,11 +158,28 @@ function markdownToStaticHtml(source) {
   return { html, sections };
 }
 
+function tocLabel(title) {
+  const tex = [];
+  const put = (raw) => {
+    const k = `@@TEX${tex.length}@@`;
+    tex.push(raw);
+    return k;
+  };
+  const s = title
+    .replace(/\$\$([\s\S]*?)\$\$/g, (_, x) => put(x.trim()))
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_, x) => put(x))
+    .replace(/\$([^$\n]+?)\$/g, (_, x) => put(x.trim()))
+    .replace(/\\\(([\s\S]*?)\\\)/g, (_, x) => put(x));
+  return esc(s).replace(/@@TEX(\d+)@@/g, (_, i) => renderMath(tex[i], false));
+}
+
 function tocHtml(sections) {
   return sections
+    .filter(s => s.title.trim().toLowerCase() !== 'содержание')
+    .filter(s => s.level <= 2 || s.title.trim().startsWith('§'))
     .map(s => {
       const level = s.level > 2 ? 3 : s.level;
-      return `<a class="toc-link toc-level-${level}" href="#${esc(s.id)}">${esc(s.title)}</a>`;
+      return `<a class="toc-link toc-level-${level}" href="#${esc(s.id)}">${tocLabel(s.title)}</a>`;
     })
     .join('');
 }
