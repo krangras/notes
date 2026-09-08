@@ -291,7 +291,13 @@ function collectDefinitions(sourceRaw, slug) {
     i++;
   }
 
-  for (const anchorId of Object.keys(GLOSSARY)) {
+  const anchoredKeys = new Set(Object.keys(GLOSSARY));
+  const unlisted = new Set();
+  for (const line of lines) {
+    const a = line.match(/^<a\s+id=["']([^"']+)["']\s*><\/a>$/i);
+    if (a && !anchoredKeys.has(a[1])) unlisted.add(a[1]);
+  }
+  for (const anchorId of [...unlisted, ...Object.keys(GLOSSARY)]) {
     if (usedAnchors.has(anchorId)) continue;
     let lineAt = -1;
     let ctx = '';
@@ -301,26 +307,43 @@ function collectDefinitions(sourceRaw, slug) {
       if (lines[idx].trim() === `<a id="${anchorId}"></a>`) { lineAt = idx; break; }
     }
     if (lineAt < 0) continue;
+    const isCurated = anchoredKeys.has(anchorId);
     let j = lineAt + 1;
-    while (j < lines.length && !lines[j].trim()) j++;
+    let heading = null;
+    while (j < lines.length) {
+      const t = lines[j].trim();
+      if (!t) { j++; continue; }
+      const h = t.match(/^(#{1,5})\s+(.+)$/);
+      if (h) { heading = h[2].trim(); j++; continue; }
+      break;
+    }
     if (j >= lines.length) continue;
-    if (/^#{1,5}\s+/.test(lines[j].trim())) continue;
     if (/^\*\*Определение/.test(lines[j].trim())) continue;
     if (/^<a\s+id=/.test(lines[j].trim())) continue;
+    if (!isCurated) {
+      if (heading && /^(§|Раздел|Глава)/.test(heading)) continue;
+      if (!heading && /^\*\*Определения/.test(lines[j].trim())) continue;
+    }
     const para = [];
     while (j < lines.length && lines[j].trim() && !/^(#{1,5})\s+/.test(lines[j])) { para.push(lines[j]); j++; }
     if (!para.length) continue;
+    const text = para.join('\n');
+    const bold = text.match(/^\*\*([^*]{2,60}?)\*\*/);
+    const label = bold ? bold[1].trim() : heading || (GLOSSARY[anchorId] && GLOSSARY[anchorId][0]) || 'Понятие';
     defs.push({
       kind: 'concept', id: anchorId, anchorId,
-      label: (GLOSSARY[anchorId] && GLOSSARY[anchorId][0]) || 'Понятие',
-      text: para.join('\n'), trailing: [], context: ctx,
+      label, text, trailing: [], context: ctx,
       terms: (GLOSSARY[anchorId] || []).slice(0, 8)
     });
   }
 
   for (const d of defs) {
     const curated = (d.anchorId && GLOSSARY[d.anchorId]) || [];
-    const terms = new Set([...(d.terms || []), ...curated]);
+    let terms = new Set([...(d.terms || []), ...curated]);
+    if (d.kind === 'concept' && !terms.size) {
+      const lbl = d.label.toLowerCase();
+      if (lbl && lbl.length >= 3) terms.add(lbl);
+    }
     d.terms = [...terms].slice(0, 10);
     d.json = (d.terms || []).map(t => t);
   }
@@ -374,17 +397,6 @@ function wrapDefinitions(html, defs) {
 function mdToHtml(fragment) {
   const { s, math } = stashMath(fragment);
   return restoreMath(md.render(s), math);
-}
-
-function renderDefinitionsAppendix(fullDefs) {
-  const blocks = fullDefs.map(d => {
-    const frag = [d.text, ...d.trailing].join('\n\n');
-    let h = mdToHtml(frag);
-    h = h.replace(/<p>/, `<p class="definition" id="${esc(d.id)}" data-terms="${esc(JSON.stringify(d.terms || []))}"><span class="def-label">${esc(d.label)}</span> `);
-    const ctx = d.context ? `<span class="def-source">из раздела «${esc(d.context)}»</span>` : '';
-    return `<div class="def-block">${h}${ctx}</div>`;
-  });
-  return `<h2 id="all-definitions">Все определения из лекционного конспекта</h2>\n<div class="def-appendix">${blocks.join('\n')}</div>`;
 }
 
 function markdownToStaticHtml(sourceRaw) {
@@ -926,16 +938,6 @@ function main() {
     const { html, sections } = markdownToStaticHtml(source);
     const defs = collectDefinitions(source, note.slug);
     let content = wrapDefinitions(html, defs);
-    if (note.slug === 'linear-algebra-1') {
-      const fullNote = config.notes.find(n => n.slug === 'agitdu-full');
-      if (fullNote) {
-        let fs2 = fs.readFileSync(path.join(ROOT, fullNote.file), 'utf8');
-        if (fs2.charCodeAt(0) === 0xfeff) fs2 = fs2.slice(1);
-        const fullDefs = collectDefinitions(fs2, fullNote.slug).filter(d => d.kind === 'def');
-        content += renderDefinitionsAppendix(fullDefs);
-        sections.push({ level: 2, title: 'Все определения из лекционного конспекта', id: 'all-definitions', fromAnchor: false });
-      }
-    }
     fs.writeFileSync(path.join(OUT, `${note.slug}.html`), notePage({ note, content, sections }));
     fs.copyFileSync(full, path.join(OUT, path.basename(note.file)));
     notesBySlug.set(note.slug, { note, sections });

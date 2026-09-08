@@ -29,6 +29,14 @@
       "badge": "Лекции",
       "slug": "agitdu-full",
       "semester": 1
+    },
+    {
+      "file": "lecture_01_probability_logic.md",
+      "title": "Теория вероятностей — лекция 1",
+      "subtitle": "3 семестр · конспект лекций",
+      "badge": "Лекции",
+      "slug": "probability-lecture-1",
+      "semester": 3
     }
   ],
   "types": [
@@ -101,7 +109,15 @@
         }
       ]
     },
-    { "number": 3, "subjects": [] },
+    { "number": 3, "subjects": [
+      {
+        "title": "Теория вероятностей",
+        "items": [
+          { "title": "Теория вероятностей — лекция 1", "type": "lecture", "kind": "note", "slug": "probability-lecture-1" },
+          { "title": "Теория вероятностей — лекции", "type": "lecture", "kind": "pdf", "slug": "probability-lectures", "file": "notes/3rd_semester/Теория вероятностей_260908_215918.pdf" }
+        ]
+      }
+    ] },
     { "number": 4, "subjects": [] },
     { "number": 5, "subjects": [] },
     { "number": 6, "subjects": [] },

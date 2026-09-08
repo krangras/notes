@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="t d">
+  <title id="t">Люди как подмножество смертных</title>
+  <desc id="d">Множество людей расположено внутри множества смертных; точка Сократ принадлежит множеству людей.</desc>
+  <rect width="1200" height="560" fill="transparent"/>
+  <g fill="none" stroke="#2563eb" stroke-width="4">
+    <ellipse cx="370" cy="300" rx="285" ry="175"/>
+    <ellipse cx="355" cy="300" rx="180" ry="105"/>
+    <circle cx="325" cy="325" r="7" fill="#2563eb" stroke="none"/>
+    <path d="M655 120 L570 188"/>
+    <path d="M570 188 l18 -3 l-8 -16" fill="#2563eb" stroke="none"/>
+  </g>
+  <g fill="#111827" font-family="Inter, Arial, sans-serif">
+    <text x="215" y="265" font-size="36" font-weight="600">Люди</text>
+    <text x="345" y="350" font-size="32">Сократ</text>
+    <text x="670" y="115" font-size="34" font-weight="600">Смертные</text>
+    <text x="725" y="255" font-size="34">Люди ⊆ смертные</text>
+    <text x="725" y="315" font-size="34">Сократ ∈ люди</text>
+    <text x="725" y="375" font-size="34">⇒ Сократ ∈ смертные</text>
+  </g>
+</svg>

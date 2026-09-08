@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="t d">
+  <title id="t">Схема парадокса Рассела</title>
+  <desc id="d">Для множества A={X | X не принадлежит X} оба предположения A принадлежит A и A не принадлежит A приводят к противоречию.</desc>
+  <rect width="1200" height="620" rx="24" fill="#f8fafc"/>
+  <g fill="#111827" font-family="Inter, Arial, sans-serif" text-anchor="middle">
+    <text x="600" y="78" font-size="44" font-weight="700">A = { X | X ∉ X }</text>
+  </g>
+  <g fill="white" stroke="#2563eb" stroke-width="4">
+    <rect x="95" y="170" width="430" height="110" rx="18"/>
+    <rect x="675" y="170" width="430" height="110" rx="18"/>
+    <rect x="95" y="395" width="430" height="110" rx="18"/>
+    <rect x="675" y="395" width="430" height="110" rx="18"/>
+  </g>
+  <g fill="#111827" font-family="Inter, Arial, sans-serif" font-size="36" text-anchor="middle">
+    <text x="310" y="235">Предположим A ∉ A</text>
+    <text x="890" y="235">Предположим A ∈ A</text>
+    <text x="310" y="460">По определению A ∈ A</text>
+    <text x="890" y="460">По определению A ∉ A</text>
+  </g>
+  <g fill="none" stroke="#ef4444" stroke-width="5">
+    <path d="M310 280 L310 390"/>
+    <path d="M890 280 L890 390"/>
+    <path d="M525 450 C600 520 600 520 675 450"/>
+  </g>
+  <g fill="#ef4444" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">
+    <text x="600" y="570">Оба случая дают противоречие</text>
+  </g>
+</svg>

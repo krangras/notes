@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="t d">
+  <title id="t">Связь логики и отношений между множествами</title>
+  <desc id="d">Импликация соответствует включению множеств, а эквиваленция — равенству множеств через принадлежность элемента.</desc>
+  <rect width="1200" height="520" rx="22" fill="#f8fafc"/>
+  <g font-family="Inter, Arial, sans-serif" fill="#111827">
+    <text x="70" y="80" font-size="36" font-weight="700">Импликация и включение</text>
+    <text x="70" y="155" font-size="34">A ⊆ B ⇔ ∀x (x ∈ A → x ∈ B)</text>
+    <text x="70" y="220" font-size="30" fill="#475569">Запрещён только случай: x ∈ A и x ∉ B.</text>
+    <text x="70" y="335" font-size="36" font-weight="700">Эквиваленция и равенство</text>
+    <text x="70" y="410" font-size="34">A = B ⇔ ∀x (x ∈ A ↔ x ∈ B)</text>
+  </g>
+  <g transform="translate(865 105)" fill="none" stroke="#2563eb" stroke-width="4">
+    <ellipse cx="120" cy="100" rx="145" ry="85"/>
+    <ellipse cx="120" cy="100" rx="80" ry="45"/>
+  </g>
+  <g fill="#2563eb" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="600">
+    <text x="925" y="190">A</text>
+    <text x="1050" y="145">B</text>
+  </g>
+</svg>
