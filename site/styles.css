@@ -603,11 +603,17 @@ button, input { font: inherit; }
   scroll-margin-top: 20px;
 }
 .copy-section > h2:first-of-type,
-.copy-section > h3:first-of-type { margin-top: 0; padding-right: 150px; }
+.copy-section:not(.paragraph) > h3:first-of-type { margin-top: 0; padding-right: 150px; }
 .copy-actions {
   position: absolute;
   top: 22px;
   right: 22px;
+}
+.copy-section.paragraph .copy-actions {
+  position: static;
+  display: flex;
+  justify-content: center;
+  margin-top: 26px;
 }
 .copy-btn {
   border: 1px solid var(--line);
@@ -648,9 +654,9 @@ button, input { font: inherit; }
   .doc-card { min-height: 146px; }
   .group-heading { align-items: flex-start; flex-direction: column; gap: 3px; }
   .article-header { padding-top: 26px; }
-  .copy-section { border-radius: 18px; padding-top: 68px; }
-  .copy-section > h2:first-of-type,
-  .copy-section > h3:first-of-type { padding-right: 0; }
-  .copy-actions { top: 18px; left: 18px; right: auto; }
+  .copy-section:not(.paragraph) { border-radius: 18px; padding-top: 68px; }
+  .copy-section:not(.paragraph) > h2:first-of-type,
+  .copy-section:not(.paragraph) > h3:first-of-type { padding-right: 0; }
+  .copy-section:not(.paragraph) .copy-actions { top: 18px; left: 18px; right: auto; }
   .article-body h2 { font-size: 25px; }
 }

@@ -152,12 +152,18 @@ function wrapCopySections(html, source, re, unit) {
           .replace(/\n?\s*---\s*$/g, '')
           .trim()
       : '';
-    out += `
-    <section class="copy-section" id="${unit}-${num}">
+    const unitActions = unit === 'paragraph'
+      ? `${seg}
       <div class="copy-actions">
         <button class="copy-btn" type="button" data-copy-id="${num}" data-copy-label="Копировать ${label}">Копировать ${label}</button>
+      </div>`
+      : `<div class="copy-actions">
+        <button class="copy-btn" type="button" data-copy-id="${num}" data-copy-label="Копировать ${label}">Копировать ${label}</button>
       </div>
-      ${seg}
+      ${seg}`;
+    out += `
+    <section class="copy-section" id="${unit}-${num}">
+      ${unitActions}
       <textarea class="copy-source" hidden>${esc(raw)}</textarea>
     </section>`;
   }
