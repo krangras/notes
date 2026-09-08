@@ -71,14 +71,16 @@ button, input { font: inherit; }
 }
 
 .site-header {
-  width: min(1180px, calc(100% - 32px));
+  width: 100%;
   margin: 0 auto;
+  padding-inline: max(14px, calc((100% - 1440px) / 2));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   min-height: 76px;
 }
+.site-header-article { padding-inline: max(14px, calc((100% - 1760px) / 2)); }
 
 .brand {
   display: inline-flex;
@@ -97,16 +99,17 @@ button, input { font: inherit; }
 }
 
 .brand-mark {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  background: var(--text);
-  color: var(--bg);
-  font-size: 15px;
-  font-weight: 850;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(90, 123, 255, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
+.brand-mark svg { display: block; width: 100%; height: 100%; }
+.brand:hover .brand-mark svg { transform: scale(1.06) rotate(-4deg); }
+.brand-mark svg { transition: transform .2s ease; }
 
 .header-link {
   color: var(--muted);
@@ -664,8 +667,9 @@ button, input { font: inherit; }
 }
 
 @media (max-width: 640px) {
-  .site-shell, .site-shell-article, .site-header { width: min(100% - 14px, 1760px); }
-  .site-header { min-height: 56px; }
+  .site-shell, .site-shell-article { width: min(100% - 14px, 1760px); }
+  .site-header { min-height: 56px; padding-inline: 10px; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 10px; }
   .brand-mark { width: 30px; height: 30px; font-size: 13px; }
   .hero { padding: 40px 0 24px; }
   .hero h1 { font-size: 40px; }

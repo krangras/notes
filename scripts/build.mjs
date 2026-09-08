@@ -27,6 +27,12 @@ const mathDocument = mathjax.document('', { InputJax: texInput, OutputJax: svgOu
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+const FAVICON = '<link rel="icon" type="image/svg+xml" href="./favicon.svg">';
+
+const BRAND_MARK = '<span class="brand-mark"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a7bff"/><stop offset="1" stop-color="#9a5bff"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#brandGrad)"/><g stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9" fill="none"><path d="M20 9.5 11 19l9 9.5 9-9.5z"/><path d="M11 19h18"/></g><g fill="#fff"><circle cx="20" cy="9.5" r="2.9"/><circle cx="11" cy="19" r="2.9"/><circle cx="29" cy="19" r="2.9"/><circle cx="20" cy="28.5" r="2.9"/></g></svg></span>';
+
+const BRAND = (siteTitle) => `<a class="brand" href="./">${BRAND_MARK}<span>${esc(siteTitle)}</span></a>`;
+
 function renderMath(latex, display) {
   try {
     const node = mathDocument.convert(latex, { display });
@@ -216,13 +222,14 @@ function notePage({ note, content, sections }) {
 <meta name="color-scheme" content="light dark">
 <title>${esc(note.title)} — ${esc(config.siteTitle)}</title>
 <meta name="description" content="${esc(note.subtitle)}">
+${FAVICON}
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 <div class="reading-progress" id="readingProgress"></div>
 
-<header class="site-header">
-  <a class="brand" href="./"><span class="brand-mark">АИИ</span><span>${esc(config.siteTitle)}</span></a>
+<header class="site-header site-header-article">
+  ${BRAND(config.siteTitle)}
   <a class="header-link" href="${esc(config.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>
 </header>
 
@@ -322,11 +329,12 @@ function docPage({ item, sem, subject }) {
 <meta name="color-scheme" content="light dark">
 <title>${esc(item.title)} — скачать · ${esc(config.siteTitle)}</title>
 <meta name="description" content="${subjectTitle} · ${tlabel}. Рукописный конспект, ${sem.number} семестр.">
+${FAVICON}
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 <header class="site-header">
-  <a class="brand" href="./"><span class="brand-mark">АИИ</span><span>${esc(config.siteTitle)}</span></a>
+  ${BRAND(config.siteTitle)}
   <a class="header-link" href="${esc(config.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>
 </header>
 
@@ -430,11 +438,12 @@ function indexPage() {
 <meta name="color-scheme" content="light dark">
 <title>${esc(config.siteTitle)}</title>
 <meta name="description" content="${esc(config.siteDescription)}">
+${FAVICON}
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 <header class="site-header">
-  <a class="brand" href="./"><span class="brand-mark">АИИ</span><span>${esc(config.siteTitle)}</span></a>
+  ${BRAND(config.siteTitle)}
   <a class="header-link" href="${esc(config.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>
 </header>
 
@@ -450,7 +459,7 @@ function indexPage() {
   </nav>
 
   <div class="search-wrap">
-    <input id="catalogSearch" class="catalog-search" type="search" placeholder="Найти дисциплину или материал — лекции, практику, теорию к экзамену…">
+    <input id="catalogSearch" class="catalog-search" type="search" placeholder="Найти дисциплину или материал">
   </div>
 
   <section class="catalog" id="catalog">
@@ -576,6 +585,10 @@ function main() {
   copyDir(path.join(ROOT, 'assets'), path.join(OUT, 'assets'));
   if (fs.existsSync(path.join(__dirname, '..', 'site', 'styles.css'))) {
     fs.copyFileSync(path.join(ROOT, 'site', 'styles.css'), path.join(OUT, 'styles.css'));
+  }
+  const favicon = path.join(ROOT, 'site', 'favicon.svg');
+  if (fs.existsSync(favicon)) {
+    fs.copyFileSync(favicon, path.join(OUT, 'favicon.svg'));
   }
   fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
 
