@@ -25,10 +25,10 @@
     {
       "file": "Алгебра_геометрия_и_ТДУ_полный_конспект.md",
       "title": "АГиТДУ",
-      "subtitle": "2 семестр · конспект лекций",
+      "subtitle": "1 семестр · конспект лекций",
       "badge": "Лекции",
       "slug": "agitdu-full",
-      "semester": 2
+      "semester": 1
     }
   ],
   "types": [
@@ -44,6 +44,7 @@
         {
           "title": "Алгебра, геометрия и ТДУ (АГиТДУ)",
           "items": [
+            { "title": "АГиТДУ", "type": "lecture", "kind": "note", "slug": "agitdu-full" },
             { "title": "Линейная алгебра", "type": "theory", "kind": "note", "slug": "linear-algebra-1" }
           ]
         },
@@ -72,7 +73,6 @@
         {
           "title": "Алгебра, геометрия и ТДУ (АГиТДУ)",
           "items": [
-            { "title": "АГиТДУ", "type": "lecture", "kind": "note", "slug": "agitdu-full" },
             { "title": "АГиТДУ", "type": "lecture", "kind": "pdf", "slug": "agitdu-lectures", "file": "notes/2nd_semester/АГиТДУ лекции _260529_104241.pdf" },
             { "title": "АГиТДУ", "type": "practice", "kind": "pdf", "slug": "agitdu-practice", "file": "notes/2nd_semester/АГиТДУ практика _260529_134811.pdf" },
             { "title": "АГиТДУ", "type": "theory", "kind": "pdf", "slug": "agitdu-theory-exam", "file": "notes/2nd_semester/АГИТДУ теория к экзамену _260605_212936.pdf" }
