@@ -182,7 +182,7 @@ function notePage({ note, content, sections }) {
 <div class="reading-progress" id="readingProgress"></div>
 
 <header class="site-header">
-  <a class="brand" href="./"><span class="brand-mark">N</span><span>notes</span></a>
+  <a class="brand" href="./"><span class="brand-mark">АИИ</span><span>${esc(config.siteTitle)}</span></a>
   <a class="header-link" href="${esc(config.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>
 </header>
 
@@ -254,6 +254,73 @@ function plural(n, one, few, many) {
   return many;
 }
 
+function humanSize(bytes) {
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 1) {
+    const v = mb >= 100 ? Math.round(mb) : parseFloat(mb.toFixed(1));
+    return `${v} МБ`;
+  }
+  return `${Math.max(1, Math.round(bytes / 1024))} КБ`;
+}
+
+function docPage({ item, sem, subject }) {
+  const typeByKey = new Map(config.types.map(t => [t.key, t]));
+  const type = typeByKey.get(item.type);
+  const tlabel = esc(type ? type.label : item.type);
+  const tkey = type ? ` type-${esc(type.key)}` : '';
+  const src = path.join(ROOT, item.file);
+  const size = fs.existsSync(src) ? humanSize(fs.statSync(src).size) : '';
+  const fileHref = `./${encodeURI(item.file)}`;
+  const subjectTitle = esc(subject.title);
+
+  return `<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>${esc(item.title)} — скачать · ${esc(config.siteTitle)}</title>
+<meta name="description" content="${subjectTitle} · ${tlabel}. Рукописный конспект, ${sem.number} семестр.">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="./"><span class="brand-mark">АИИ</span><span>${esc(config.siteTitle)}</span></a>
+  <a class="header-link" href="${esc(config.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>
+</header>
+
+<main class="site-shell">
+  <article class="doc-page">
+    <div class="doc-page-head">
+      <span class="type-chip${tkey}">${tlabel}</span>
+      <h1>${esc(item.title)}</h1>
+      <p class="doc-page-sub">${subjectTitle} · ${sem.number} семестр · рукописный конспект</p>
+    </div>
+
+    <div class="doc-page-actions">
+      <a class="dl-btn" href="${fileHref}" download>
+        <span class="dl-btn-ico">↓</span>
+        <span class="dl-btn-text">
+          <span class="dl-btn-title">Скачать рукописный конспект</span>
+          <span class="dl-btn-meta">PDF · ${size}</span>
+        </span>
+      </a>
+      <a class="open-btn" href="${fileHref}" target="_blank" rel="noopener">Открыть в просмотре ↗</a>
+    </div>
+
+    <p class="doc-page-hint">Если кнопка не сработала — откройте&nbsp;файл напрямую: <a href="${fileHref}" target="_blank" rel="noopener">показать PDF</a>.</p>
+
+    <a class="back-link" href="./?sem=${sem.number}">← Все материалы</a>
+  </article>
+</main>
+
+<footer class="site-footer site-shell">
+  <p>${esc(config.siteTitle)} · <a href="${esc(config.repoUrl)}" target="_blank" rel="noopener">${esc(config.repoUrl.replace('https://', ''))}</a></p>
+</footer>
+</body>
+</html>`;
+}
+
 function indexPage() {
   const typeByKey = new Map(config.types.map(t => [t.key, t]));
   const semesterCounts = new Map(config.semesters.map(s => [s.number, semCount(s)]));
@@ -288,18 +355,30 @@ function indexPage() {
             const type = typeByKey.get(it.type);
             const tlabel = esc(type ? type.label : it.type);
             const tkey = type ? ` type-${esc(type.key)}` : '';
-            const href = it.kind === 'note'
-              ? `./${it.slug}.html?sem=${s.number}`
-              : `./${encodeURI(it.file)}`;
-            const target = it.kind === 'pdf' ? ' target="_blank" rel="noopener"' : '';
             const kind = it.kind === 'note' ? 'Конспект' : 'PDF';
-            return `<a class="doc-card" data-card data-key="${esc((it.title + ' ' + tlabel + ' ' + subj.title).toLowerCase())}" href="${href}"${target}>
+            const pageHref = `./${it.slug}.html?sem=${s.number}`;
+            const dataKey = esc((it.title + ' ' + tlabel + ' ' + subj.title).toLowerCase());
+            if (it.kind === 'pdf') {
+              return `<div class="doc-card has-dl" data-card data-key="${dataKey}">
+                <a class="doc-card-link" href="${pageHref}">
+                  <div class="doc-card-top">
+                    <div class="doc-card-title"><h3>${esc(it.title)}</h3><span class="type-chip${tkey}">${tlabel}</span></div>
+                  </div>
+                  <div class="doc-card-bottom">
+                    <span class="badge">${kind}</span>
+                    <span class="card-arrow">→</span>
+                  </div>
+                </a>
+                <a class="card-dl" href="./${encodeURI(it.file)}" download title="Скачать ${kind}" aria-label="Скачать ${kind}">↓</a>
+              </div>`;
+            }
+            return `<a class="doc-card" data-card data-key="${dataKey}" href="${pageHref}">
               <div class="doc-card-top">
                 <div class="doc-card-title"><h3>${esc(it.title)}</h3><span class="type-chip${tkey}">${tlabel}</span></div>
               </div>
               <div class="doc-card-bottom">
                 <span class="badge">${kind}</span>
-                <span class="card-arrow">↗</span>
+                <span class="card-arrow">→</span>
               </div>
             </a>`;
           }).join('')}
@@ -321,7 +400,7 @@ function indexPage() {
 </head>
 <body>
 <header class="site-header">
-  <a class="brand" href="./"><span class="brand-mark">ИИ</span><span>${esc(config.siteTitle)}</span></a>
+  <a class="brand" href="./"><span class="brand-mark">АИИ</span><span>${esc(config.siteTitle)}</span></a>
   <a class="header-link" href="${esc(config.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>
 </header>
 
@@ -474,6 +553,7 @@ function main() {
         const dst = path.join(OUT, item.file);
         fs.mkdirSync(path.dirname(dst), { recursive: true });
         fs.copyFileSync(src, dst);
+        fs.writeFileSync(path.join(OUT, `${item.slug}.html`), docPage({ item, sem, subject }));
       }
     }
   }

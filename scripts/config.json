@@ -42,16 +42,26 @@
       "number": 1,
       "subjects": [
         {
+          "title": "Алгебра, геометрия и ТДУ (АГиТДУ)",
+          "items": [
+            { "title": "Линейная алгебра", "type": "theory", "kind": "note", "slug": "linear-algebra-1" }
+          ]
+        },
+        {
+          "title": "Дискретная математика",
+          "items": [
+            { "title": "Дискретная математика", "type": "theory", "kind": "note", "slug": "discrete-math-1" },
+            { "title": "Дискретная математика", "type": "lecture", "kind": "pdf", "slug": "discrete-lectures", "file": "notes/1st_semester/Дискретная Математика Лекции.pdf" },
+            { "title": "Дискретная математика", "type": "practice", "kind": "pdf", "slug": "discrete-practice", "file": "notes/1st_semester/Дискртеная Математика Практики.pdf" }
+          ]
+        },
+        {
           "title": "Математика",
           "items": [
-            { "title": "Линейная алгебра", "type": "theory", "kind": "note", "slug": "linear-algebra-1" },
-            { "title": "Дискретная математика", "type": "theory", "kind": "note", "slug": "discrete-math-1" },
-            { "title": "Дискретная математика", "type": "lecture", "kind": "pdf", "file": "notes/1st_semester/Дискретная Математика Лекции.pdf" },
-            { "title": "Дискретная математика", "type": "practice", "kind": "pdf", "file": "notes/1st_semester/Дискртеная Математика Практики.pdf" },
-            { "title": "Математический анализ", "type": "lecture", "kind": "pdf", "file": "notes/1st_semester/Математика_Лекции_Конспекты.pdf" },
-            { "title": "Математический анализ", "type": "practice", "kind": "pdf", "file": "notes/1st_semester/Математика_Практики_Конспекты.pdf" },
-            { "title": "Математический анализ", "type": "theory", "kind": "pdf", "file": "notes/1st_semester/Математика_теория_к_экзамену.pdf" },
-            { "title": "Математический анализ", "type": "practice-exam", "kind": "pdf", "file": "notes/1st_semester/Матан_практика_экзамен.pdf" }
+            { "title": "Математика", "type": "lecture", "kind": "pdf", "slug": "matan-lectures", "file": "notes/1st_semester/Математика_Лекции_Конспекты.pdf" },
+            { "title": "Математика", "type": "practice", "kind": "pdf", "slug": "matan-practice", "file": "notes/1st_semester/Математика_Практики_Конспекты.pdf" },
+            { "title": "Математика", "type": "theory", "kind": "pdf", "slug": "matan-theory-exam", "file": "notes/1st_semester/Математика_теория_к_экзамену.pdf" },
+            { "title": "Математика", "type": "practice-exam", "kind": "pdf", "slug": "matan-practice-exam", "file": "notes/1st_semester/Матан_практика_экзамен.pdf" }
           ]
         }
       ]
@@ -60,26 +70,31 @@
       "number": 2,
       "subjects": [
         {
-          "title": "Математика",
+          "title": "Алгебра, геометрия и ТДУ (АГиТДУ)",
           "items": [
             { "title": "АГиТДУ", "type": "lecture", "kind": "note", "slug": "agitdu-full" },
-            { "title": "АГиТДУ", "type": "lecture", "kind": "pdf", "file": "notes/2nd_semester/АГиТДУ лекции _260529_104241.pdf" },
-            { "title": "АГиТДУ", "type": "practice", "kind": "pdf", "file": "notes/2nd_semester/АГиТДУ практика _260529_134811.pdf" },
-            { "title": "АГиТДУ", "type": "theory", "kind": "pdf", "file": "notes/2nd_semester/АГИТДУ теория к экзамену _260605_212936.pdf" },
-            { "title": "Математический анализ", "type": "lecture", "kind": "pdf", "file": "notes/2nd_semester/Матан лекции_260516_132052.pdf" },
-            { "title": "Математический анализ", "type": "practice", "kind": "pdf", "file": "notes/2nd_semester/Матан практика _260524_123935.pdf" }
+            { "title": "АГиТДУ", "type": "lecture", "kind": "pdf", "slug": "agitdu-lectures", "file": "notes/2nd_semester/АГиТДУ лекции _260529_104241.pdf" },
+            { "title": "АГиТДУ", "type": "practice", "kind": "pdf", "slug": "agitdu-practice", "file": "notes/2nd_semester/АГиТДУ практика _260529_134811.pdf" },
+            { "title": "АГиТДУ", "type": "theory", "kind": "pdf", "slug": "agitdu-theory-exam", "file": "notes/2nd_semester/АГИТДУ теория к экзамену _260605_212936.pdf" }
+          ]
+        },
+        {
+          "title": "Математика",
+          "items": [
+            { "title": "Математика", "type": "lecture", "kind": "pdf", "slug": "matan2-lectures", "file": "notes/2nd_semester/Матан лекции_260516_132052.pdf" },
+            { "title": "Математика", "type": "practice", "kind": "pdf", "slug": "matan2-practice", "file": "notes/2nd_semester/Матан практика _260524_123935.pdf" }
           ]
         },
         {
           "title": "Физика",
           "items": [
-            { "title": "Физика", "type": "lecture", "kind": "pdf", "file": "notes/2nd_semester/Физика лекции _260529_092032.pdf" }
+            { "title": "Физика", "type": "lecture", "kind": "pdf", "slug": "physics-lectures", "file": "notes/2nd_semester/Физика лекции _260529_092032.pdf" }
           ]
         },
         {
-          "title": "Другое",
+          "title": "Верификация данных",
           "items": [
-            { "title": "Верификация данных", "type": "lecture", "kind": "pdf", "file": "notes/2nd_semester/Верификация данных Лекции _260523_170722.pdf" }
+            { "title": "Верификация данных", "type": "lecture", "kind": "pdf", "slug": "verification-lectures", "file": "notes/2nd_semester/Верификация данных Лекции _260523_170722.pdf" }
           ]
         }
       ]
