@@ -39,6 +39,18 @@
       "semester": 3
     }
   ],
+  "definitionSources": {
+    "linear-algebra-1": "agitdu-full"
+  },
+  "definitionTicketScopes": {
+    "linear-algebra-1": [
+      { "from": 1, "to": 3, "scope": "complex" },
+      { "from": 4, "to": 9, "scope": "matrix" },
+      { "from": 10, "to": 14, "scope": "vector" },
+      { "from": 15, "to": 19, "scope": "analytic" },
+      { "from": 20, "to": 24, "scope": "linear-space" }
+    ]
+  },
   "types": [
     { "key": "lecture", "label": "Лекции" },
     { "key": "practice", "label": "Практика" },

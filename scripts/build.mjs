@@ -2,6 +2,8 @@ import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { canonicalGlossaryKey, injectDefinitionsIntoTickets, wrapTicketDefinitionPanels } from './definition-system.mjs';
+// canonical-definition-system:v1
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -12,6 +14,7 @@ const GLOSSARY = (() => {
   try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'glossary.json'), 'utf8')); }
   catch { return {}; }
 })();
+const glossaryTerms = anchorId => GLOSSARY[canonicalGlossaryKey(anchorId)] || [];
 const OUT = path.join(ROOT, config.outputDir);
 
 const MarkdownIt = require('markdown-it');
@@ -250,64 +253,77 @@ function collectDefinitions(sourceRaw, slug) {
   let counter = 0;
   let i = 0;
 
+  const semanticBoundary = t => {
+    if (!t) return false;
+    if (/^<a\s+id=["'][^"']+["']\s*><\/a>$/i.test(t)) return true;
+    if (/^#{1,5}\s+/.test(t)) return true;
+    if (/^<(?:p|figure|img)\b/i.test(t)) return true;
+    if (/^(?:Обозначение|Пример|Примеры|Матрица удобно изображается таблицей|Строки матрицы|Столбцы матрицы)\s*:/i.test(t)) return true;
+    return /^\*\*(?:Определение|Замечание|Примечание|Пример|Теорема|Следствие|Лемма|Д-во|Док-во|Доказательство|Обозначение)(?=[\s.:*—-]|$)/i.test(t);
+  };
+
   while (i < lines.length) {
     const t = lines[i].trim();
-    if (!lastAnchor) {
-      const a = t.match(/^<a\s+id=["']([^"']+)["']\s*><\/a>$/i);
-      if (a) { lastAnchor = a[1]; i++; continue; }
-    }
+    const a = t.match(/^<a\s+id=["']([^"']+)["']\s*><\/a>$/i);
+    if (a) { lastAnchor = a[1]; i++; continue; }
+
     const h = t.match(/^(#{1,5})\s+(.+)$/);
     if (h) { currentHeading = h[2].trim(); lastAnchor = null; i++; continue; }
-    const dm = t.match(/^\*\*Определение(?:\s+(\d+))?\.(.*)$/);
+
+    const dm = t.match(/^\*\*Определение(?:\s+(\d+))?\.(?:\*\*)?(.*)$/i);
     if (dm) {
-      const para = [lines[i]];
+      const block = [lines[i]];
       i++;
-      while (i < lines.length && lines[i].trim()) { para.push(lines[i]); i++; }
-      const trailing = [];
+      let inFence = false;
       while (i < lines.length) {
-        let j = i;
-        while (j < lines.length && !lines[j].trim()) j++;
-        if (j >= lines.length || !/^```math/i.test(lines[j].trim())) break;
-        const block = [lines[j]];
-        let k = j + 1;
-        while (k < lines.length && !/^```/.test(lines[k].trim())) { block.push(lines[k]); k++; }
-        if (k < lines.length) block.push(lines[k]);
-        trailing.push(block.join('\n'));
-        i = k + 1;
+        const next = lines[i].trim();
+        if (/^```/.test(next)) {
+          block.push(lines[i]);
+          inFence = !inFence;
+          i++;
+          continue;
+        }
+        if (!inFence && semanticBoundary(next)) break;
+        block.push(lines[i]);
+        i++;
       }
+      while (block.length && !block[block.length - 1].trim()) block.pop();
+
       counter++;
       const anchorId = lastAnchor;
       lastAnchor = null;
       if (anchorId) usedAnchors.add(anchorId);
-      const text = para.join('\n').replace(/^\*\*Определение(?:\s+\d+)?\.\s*/, '').replace(/^\*\*/, '');
+      const text = block.join('\n')
+        .replace(/^\*\*Определение(?:\s+\d+)?\.\*\*\s*/i, '')
+        .replace(/^\*\*Определение(?:\s+\d+)?\.\s*/i, '')
+        .replace(/^\*\*/, '');
       const label = `Определение${dm[1] ? ' ' + dm[1] : ''}.`;
       defs.push({
         kind: 'def', id: anchorId || `def-${slug}-${counter}`, anchorId,
-        label, text, trailing, context: currentHeading, terms: extractTerms(text)
+        label, text, trailing: [], context: currentHeading, terms: extractTerms(text)
       });
-      if (!anchorId) continue;
       continue;
     }
     i++;
   }
 
+  // Curated non-"Определение" anchors (formula/concept blocks such as modulus, SLU, equation forms).
   const anchoredKeys = new Set(Object.keys(GLOSSARY));
-  const unlisted = new Set();
-  for (const line of lines) {
-    const a = line.match(/^<a\s+id=["']([^"']+)["']\s*><\/a>$/i);
-    if (a && !anchoredKeys.has(a[1])) unlisted.add(a[1]);
-  }
-  for (const anchorId of [...unlisted, ...Object.keys(GLOSSARY)]) {
+  for (const rawAnchorId of anchoredKeys) {
+    const anchorId = rawAnchorId;
     if (usedAnchors.has(anchorId)) continue;
     let lineAt = -1;
     let ctx = '';
+    let inlineText = '';
     for (let idx = 0; idx < lines.length; idx++) {
-      const lh = lines[idx].match(/^(#{1,5})\s+(.+)$/);
+      const raw = lines[idx].trim();
+      const lh = raw.match(/^(#{1,5})\s+(.+)$/);
       if (lh) ctx = lh[2].trim();
-      if (lines[idx].trim() === `<a id="${anchorId}"></a>`) { lineAt = idx; break; }
+      if (raw === `<a id="${anchorId}"></a>` || raw === `<a id='${anchorId}'></a>`) { lineAt = idx; break; }
+      const ia = raw.match(/^\d+\.\s*<a\s+id=["']([^"']+)["']\s*><\/a>(.*)$/i);
+      if (ia && ia[1] === anchorId) { lineAt = idx; inlineText = ia[2].trim(); break; }
     }
     if (lineAt < 0) continue;
-    const isCurated = anchoredKeys.has(anchorId);
     let j = lineAt + 1;
     let heading = null;
     while (j < lines.length) {
@@ -318,36 +334,81 @@ function collectDefinitions(sourceRaw, slug) {
       break;
     }
     if (j >= lines.length) continue;
-    if (/^\*\*Определение/.test(lines[j].trim())) continue;
+    if (/^\*\*Определение/i.test(lines[j].trim())) continue;
     if (/^<a\s+id=/.test(lines[j].trim())) continue;
-    if (!isCurated) {
-      if (heading && /^(§|Раздел|Глава)/.test(heading)) continue;
-      if (!heading && /^\*\*Определения/.test(lines[j].trim())) continue;
+
+    const para = inlineText ? [inlineText] : [];
+    let inFence = false;
+    while (j < lines.length) {
+      const t = lines[j].trim();
+      if (/^```/.test(t)) {
+        para.push(lines[j]);
+        inFence = !inFence;
+        j++;
+        continue;
+      }
+      if (!inFence && para.length && inlineText && /^\d+\.\s+/.test(t)) break;
+      if (!inFence && para.length && (/^<a\s+id=/.test(t) || /^(#{1,5})\s+/.test(t) || /^\*\*(?:Определение|Замечание|Примечание|Пример|Теорема|Следствие|Лемма|Д-во|Док-во|Доказательство)(?=[\s.:*—-]|$)/i.test(t))) break;
+      if (!inFence && !t && para.length) {
+        // Keep blank lines if the next meaningful item is a math block; otherwise finish a compact concept.
+        let k = j + 1;
+        while (k < lines.length && !lines[k].trim()) k++;
+        if (k < lines.length && /^```math/i.test(lines[k].trim())) { para.push(lines[j]); j++; continue; }
+        break;
+      }
+      para.push(lines[j]);
+      j++;
     }
-    const para = [];
-    while (j < lines.length && lines[j].trim() && !/^(#{1,5})\s+/.test(lines[j])) { para.push(lines[j]); j++; }
+    while (para.length && !para[para.length - 1].trim()) para.pop();
     if (!para.length) continue;
     const text = para.join('\n');
-    const bold = text.match(/^\*\*([^*]{2,60}?)\*\*/);
-    const label = bold ? bold[1].trim() : heading || (GLOSSARY[anchorId] && GLOSSARY[anchorId][0]) || 'Понятие';
+    const bold = text.match(/^\*\*([^*]{2,80}?)\*\*/);
+    const curated = glossaryTerms(anchorId);
+    const label = bold ? bold[1].trim() : heading || curated[0] || 'Понятие';
     defs.push({
       kind: 'concept', id: anchorId, anchorId,
       label, text, trailing: [], context: ctx,
-      terms: (GLOSSARY[anchorId] || []).slice(0, 8)
+      terms: curated.slice(0, 12)
     });
+    usedAnchors.add(anchorId);
+  }
+
+  // Also discover curated local ticket copies whose ids are ticket-N__canonical-id.
+  const localAnchorRe = /^ticket-\d+__(.+)$/;
+  for (let idx = 0; idx < lines.length; idx++) {
+    const am = lines[idx].trim().match(/^<a\s+id=["']([^"']+)["']\s*><\/a>$/i);
+    if (!am || usedAnchors.has(am[1])) continue;
+    const cm = am[1].match(localAnchorRe);
+    if (!cm || !GLOSSARY[cm[1]]) continue;
+    let j = idx + 1;
+    while (j < lines.length && !lines[j].trim()) j++;
+    if (j >= lines.length || /^\*\*Определение/i.test(lines[j].trim())) continue;
+    const para = [];
+    let inFence = false;
+    while (j < lines.length) {
+      const t = lines[j].trim();
+      if (/^```/.test(t)) { para.push(lines[j]); inFence = !inFence; j++; continue; }
+      if (!inFence && para.length && (/^<!--\s*ticket-definition-end:/.test(t) || /^<a\s+id=/.test(t) || /^(#{1,5})\s+/.test(t))) break;
+      para.push(lines[j]); j++;
+    }
+    while (para.length && !para[para.length - 1].trim()) para.pop();
+    const text = para.join('\n');
+    if (!text) continue;
+    const terms = glossaryTerms(am[1]);
+    defs.push({ kind: 'concept', id: am[1], anchorId: am[1], label: terms[0] || 'Понятие', text, trailing: [], context: 'Определения этого билета', terms });
+    usedAnchors.add(am[1]);
   }
 
   for (const d of defs) {
-    const curated = (d.anchorId && GLOSSARY[d.anchorId]) || [];
-    let terms = new Set([...(d.terms || []), ...curated]);
+    const curated = glossaryTerms(d.anchorId || d.id);
+    const terms = new Set([...(d.terms || []), ...curated]);
     if (d.kind === 'concept' && !terms.size) {
-      const lbl = d.label.toLowerCase();
+      const lbl = String(d.label || '').toLowerCase();
       if (lbl && lbl.length >= 3) terms.add(lbl);
     }
-    d.terms = [...terms].slice(0, 10);
-    d.json = (d.terms || []).map(t => t);
+    d.terms = [...terms].slice(0, 16);
+    d.json = d.terms.slice();
   }
-
   return defs;
 }
 
@@ -388,6 +449,14 @@ function wrapDefinitions(html, defs) {
     html = html.replace(re, (m, id) => {
       const d = byId.get(id);
       return `<p class="definition concept" id="${esc(id)}" ${termsAttr(d)}><span class="def-label">${esc(d.label)}</span>`;
+    });
+    const inlineAnchorRe = new RegExp(
+      `<a\\s+id="(${concepts.map(d => escapeRe(d.anchorId)).join('|')})"\\s*><\/a>`,
+      'g'
+    );
+    html = html.replace(inlineAnchorRe, (m, id) => {
+      const d = byId.get(id);
+      return `<a class="definition concept definition-inline-anchor" id="${esc(id)}" ${termsAttr(d)}></a>`;
     });
   }
 
@@ -436,7 +505,15 @@ function tocHtml(sections) {
     .join('');
 }
 
-function notePage({ note, content, sections }) {
+function definitionTemplatesHtml(defs) {
+  return (defs || []).map(d => {
+    const body = d.kind === 'def' ? `**${d.label || 'Определение.'}** ${d.text || ''}` : String(d.text || '');
+    return `<template id="definition-template-${esc(d.id)}">${mdToHtml(body)}</template>`;
+  }).join('');
+}
+
+function notePage({ note, content, sections, defs }) {
+  const definitionTemplates = definitionTemplatesHtml(defs);
   return `<!doctype html>
 <html lang="ru">
 <head>
@@ -469,6 +546,7 @@ ${FAVICON}
       <nav class="toc-list">${tocHtml(sections)}</nav>
     </aside>
     <article class="article-body">${content}</article>
+    <div class="definition-templates" aria-hidden="true">${definitionTemplates}</div>
   </div>
 </main>
 
@@ -490,101 +568,135 @@ ${FAVICON}
     var defs = document.querySelectorAll('.definition');
     if (!defs.length) return;
     var byId = {};
-    var terms = [];
-    defs.forEach(function (d) {
-      byId[d.id] = d;
-      var t = [];
-      try { t = JSON.parse(d.getAttribute('data-terms') || '[]'); } catch (e) {}
-      for (var i = 0; i < t.length; i++) if (t[i]) terms.push({ t: String(t[i]).toLowerCase(), id: d.id });
-    });
-    terms.sort(function (a, b) { return b.t.length - a.t.length; });
+    defs.forEach(function (d) { if (d.id) byId[d.id] = d; });
     var body = document.querySelector('.article-body');
-    if (!body || !terms.length) return;
-
+    if (!body) return;
     var isLetter = /[a-zа-яё0-9]/i;
-    var minLen = 4;
-    for (var z = 0; z < terms.length; z++) if (terms[z].t.length < minLen) { minLen = terms[z].t.length; break; }
 
-    var nodes = [];
-    (function walk(node) {
-      var children = node.childNodes;
-      for (var i = 0; i < children.length; i++) {
-        var c = children[i];
-        if (c.nodeType === 3) {
-          var v = c.nodeValue;
-          if (!v || v.length < minLen) continue;
-          var p = c.parentNode;
-          if (!p || !p.tagName) continue;
-          if (!/^(P|LI|TD|TH|BLOCKQUOTE|FIGCAPTION|DT|DD)$/.test(p.tagName)) continue;
-          if (p.closest('a, .def-label, script, style, code, pre, .toc, textarea, button')) continue;
-          nodes.push(c);
-        } else if (c.nodeType === 1 && c.tagName !== 'SCRIPT' && c.tagName !== 'STYLE') {
-          walk(c);
-        }
-      }
-    })(body);
-
-    nodes.forEach(function (textNode) {
-      var text = textNode.nodeValue;
-      var low = text.toLowerCase();
-      var parts = [];
-      var pos = 0;
-      var len = text.length;
-      while (pos < len) {
-        var rest = len - pos;
-        if (rest < minLen) { parts.push([0, text.slice(pos)]); break; }
-        var match = null;
-        for (var k = 0; k < terms.length; k++) {
-          var term = terms[k];
-          if (term.t.length > rest) continue;
-          var eq = low.slice(pos, pos + term.t.length) === term.t;
-          var infl = term.t.indexOf(' ') === -1 && low.slice(pos).indexOf(term.t) === 0;
-          if (!eq && !infl) continue;
-          var before = pos ? text.charAt(pos - 1) : '';
-          if (isLetter.test(before)) continue;
-          var consumed = term.t.length;
-          var endChar = text.charAt(pos + consumed);
-          if (eq) {
-            if (endChar && isLetter.test(endChar)) continue;
-          } else {
-            var j = pos + term.t.length;
-            while (j < len && isLetter.test(text.charAt(j))) j++;
-            consumed = j - pos;
+    function termsFor(primaryDefs, fallbackDefs) {
+      var terms = [];
+      var seen = {};
+      function add(list) {
+        Array.prototype.forEach.call(list || [], function (d) {
+          var values = [];
+          try { values = JSON.parse(d.getAttribute('data-terms') || '[]'); } catch (e) {}
+          for (var i = 0; i < values.length; i++) {
+            var low = String(values[i] || '').trim().toLowerCase();
+            if (!low || seen[low]) continue;
+            seen[low] = 1;
+            terms.push({ t: low, id: d.id });
           }
-          match = { id: term.id, from: pos, to: pos + consumed };
-          break;
-        }
-        if (match) {
-          if (match.from > pos) parts.push([0, text.slice(pos, match.from)]);
-          parts.push([match.id, text.slice(match.from, match.to)]);
-          pos = match.to;
-          if (pos <= match.from) pos = match.from + 1;
-        } else {
-          pos++;
-        }
+        });
       }
-      var has = false;
-      for (var q = 0; q < parts.length; q++) if (parts[q][0]) { has = true; break; }
-      if (!has) return;
+      // Local definitions win for ambiguous words such as «базис».
+      add(primaryDefs);
+      add(fallbackDefs);
+      terms.sort(function (a, b) { return b.t.length - a.t.length; });
+      return terms;
+    }
 
-      var host = textNode.ownerDocument;
-      var frag = host.createDocumentFragment();
-      for (var i2 = 0; i2 < parts.length; i2++) {
-        var P = parts[i2];
-        if (!P[0]) { frag.appendChild(host.createTextNode(P[1])); continue; }
-        var a = host.createElement('a');
-        a.className = 'gloss-term';
-        a.href = '#' + P[0];
-        a.setAttribute('data-gloss', P[0]);
-        a.textContent = P[1];
-        frag.appendChild(a);
+    function linkScope(root, primaryDefs, fallbackDefs) {
+      var terms = termsFor(primaryDefs, fallbackDefs);
+      if (!terms.length) return;
+      var minLen = terms.reduce(function (m, x) { return Math.min(m, x.t.length); }, 9999);
+      var nodes = [];
+      (function walk(node) {
+        var children = node.childNodes;
+        for (var i = 0; i < children.length; i++) {
+          var c = children[i];
+          if (c.nodeType === 3) {
+            var v = c.nodeValue;
+            if (!v || v.length < minLen) continue;
+            var parent = c.parentNode;
+            if (!parent || !parent.tagName) continue;
+            if (!/^(P|LI|TD|TH|BLOCKQUOTE|FIGCAPTION|DT|DD)$/.test(parent.tagName)) continue;
+            if (parent.closest('a, .definition, .ticket-definitions, .def-label, script, style, code, pre, .toc, textarea, button')) continue;
+            nodes.push(c);
+          } else if (c.nodeType === 1 && c.tagName !== 'SCRIPT' && c.tagName !== 'STYLE') {
+            walk(c);
+          }
+        }
+      })(root);
+
+      nodes.forEach(function (textNode) {
+        var text = textNode.nodeValue;
+        var low = text.toLowerCase();
+        var parts = [];
+        var pos = 0;
+        var len = text.length;
+        while (pos < len) {
+          var rest = len - pos;
+          if (rest < minLen) { parts.push([0, text.slice(pos)]); break; }
+          var match = null;
+          for (var k = 0; k < terms.length; k++) {
+            var term = terms[k];
+            if (term.t.length > rest) continue;
+            var eq = low.slice(pos, pos + term.t.length) === term.t;
+            var infl = term.t.indexOf(' ') === -1 && low.slice(pos).indexOf(term.t) === 0;
+            if (!eq && !infl) continue;
+            var before = pos ? text.charAt(pos - 1) : '';
+            if (isLetter.test(before)) continue;
+            var consumed = term.t.length;
+            var endChar = text.charAt(pos + consumed);
+            if (eq) {
+              if (endChar && isLetter.test(endChar)) continue;
+            } else {
+              var j = pos + term.t.length;
+              while (j < len && isLetter.test(text.charAt(j))) j++;
+              consumed = j - pos;
+            }
+            match = { id: term.id, from: pos, to: pos + consumed };
+            break;
+          }
+          if (match) {
+            if (match.from > pos) parts.push([0, text.slice(pos, match.from)]);
+            parts.push([match.id, text.slice(match.from, match.to)]);
+            pos = match.to;
+            if (pos <= match.from) pos = match.from + 1;
+          } else {
+            pos++;
+          }
+        }
+        var has = false;
+        for (var q = 0; q < parts.length; q++) if (parts[q][0]) { has = true; break; }
+        if (!has) return;
+        var host = textNode.ownerDocument;
+        var frag = host.createDocumentFragment();
+        for (var i2 = 0; i2 < parts.length; i2++) {
+          var part = parts[i2];
+          if (!part[0]) { frag.appendChild(host.createTextNode(part[1])); continue; }
+          var a = host.createElement('a');
+          a.className = 'gloss-term';
+          a.href = '#' + part[0];
+          a.setAttribute('data-gloss', part[0]);
+          a.textContent = part[1];
+          frag.appendChild(a);
+        }
+        textNode.parentNode.replaceChild(frag, textNode);
+      });
+    }
+
+    var ticketSections = body.querySelectorAll('.copy-section[id^="ticket-"]');
+    if (ticketSections.length) {
+      ticketSections.forEach(function (section) {
+        linkScope(section, section.querySelectorAll('.definition'), []);
+      });
+    } else {
+      var paragraphSections = body.querySelectorAll('.copy-section[id^="paragraph-"]');
+      if (paragraphSections.length) {
+        paragraphSections.forEach(function (section) {
+          linkScope(section, section.querySelectorAll('.definition'), defs);
+        });
+      } else {
+        linkScope(body, defs, []);
       }
-      textNode.parentNode.replaceChild(frag, textNode);
-    });
-
+    }
     var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     var tip = null;
-    function closeTip() { if (tip) { tip.remove(); tip = null; } }
+    function closeTip() {
+      if (tip) { tip.remove(); tip = null; }
+      document.querySelectorAll('.gloss-term[data-gloss-open="1"]').forEach(function (n) { n.removeAttribute('data-gloss-open'); });
+    }
     function showTip(src) {
       var id = src.getAttribute('data-gloss');
       var target = id && byId[id];
@@ -593,9 +705,28 @@ ${FAVICON}
       var t = document.createElement('div');
       t.className = 'gloss-tooltip';
       t.setAttribute('role', 'tooltip');
-      var clone = target.cloneNode(true);
-      Array.prototype.slice.call(clone.querySelectorAll('script, textarea')).forEach(function (n) { n.remove(); });
-      t.appendChild(clone);
+      var tpl = document.getElementById('definition-template-' + id);
+      if (tpl && tpl.content) {
+        var frag = tpl.content.cloneNode(true);
+        Array.prototype.slice.call(frag.querySelectorAll ? frag.querySelectorAll('[id], script, textarea') : []).forEach(function (n) {
+          if (n.tagName === 'SCRIPT' || n.tagName === 'TEXTAREA') n.remove();
+          else n.removeAttribute('id');
+        });
+        t.appendChild(frag);
+      } else {
+        var clone = target.cloneNode(true);
+        clone.removeAttribute('id');
+        Array.prototype.slice.call(clone.querySelectorAll('[id], script, textarea')).forEach(function (n) {
+          if (n.tagName === 'SCRIPT' || n.tagName === 'TEXTAREA') n.remove();
+          else n.removeAttribute('id');
+        });
+        t.appendChild(clone);
+      }
+      var jump = document.createElement('a');
+      jump.className = 'gloss-tip-jump';
+      jump.href = '#' + id;
+      jump.textContent = 'К определению ↓';
+      t.appendChild(jump);
       document.body.appendChild(t);
       var r = src.getBoundingClientRect();
       var g = 10;
@@ -606,20 +737,32 @@ ${FAVICON}
       t.style.top = y + 'px';
       tip = t;
     }
-
     if (!isTouch) {
       document.addEventListener('mouseover', function (e) {
         var el = e.target.closest ? e.target.closest('.gloss-term') : null;
         if (el) showTip(el);
       });
       document.addEventListener('mouseout', function (e) {
-        var el = e.target.closest ? e.target.closest('.gloss-term') : null;
-        var rel = e.relatedTarget;
+        var el = e.target.closest ? e.target.closest('.gloss-term, .gloss-tooltip') : null;
         if (!el) return;
+        var rel = e.relatedTarget;
         if (rel && rel.closest && rel.closest('.gloss-term, .gloss-tooltip')) return;
-        setTimeout(closeTip, 120);
+        setTimeout(closeTip, 140);
       });
       document.addEventListener('scroll', closeTip, true);
+    } else {
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest ? e.target.closest('.gloss-term') : null;
+        if (!el) return;
+        if (el.getAttribute('data-gloss-open') === '1') return;
+        e.preventDefault();
+        showTip(el);
+        el.setAttribute('data-gloss-open', '1');
+      });
+      document.addEventListener('click', function (e) {
+        if (e.target.closest && e.target.closest('.gloss-term, .gloss-tooltip')) return;
+        closeTip();
+      });
     }
   })();
 
@@ -929,20 +1072,53 @@ function copyDir(src, dst) {
 
 function main() {
   cleanDir(OUT);
-
   const notesBySlug = new Map();
+  const sourceBySlug = new Map();
+  const noteBySlug = new Map(config.notes.map(note => [note.slug, note]));
+
   for (const note of config.notes) {
     const full = path.join(ROOT, note.file);
     let source = fs.readFileSync(full, 'utf8');
     if (source.charCodeAt(0) === 0xfeff) source = source.slice(1);
+    sourceBySlug.set(note.slug, source);
+  }
+
+  const canonicalDefinitions = new Map();
+  for (const [slug, source] of sourceBySlug) canonicalDefinitions.set(slug, collectDefinitions(source, slug));
+
+  for (const note of config.notes) {
+    const full = path.join(ROOT, note.file);
+    let source = sourceBySlug.get(note.slug);
+    const sourceSlug = config.definitionSources && config.definitionSources[note.slug];
+    let ticketDiagnostics = null;
+
+    if (sourceSlug) {
+      const sourceDefs = canonicalDefinitions.get(sourceSlug) || [];
+      const injected = injectDefinitionsIntoTickets(source, sourceDefs, {
+        glossary: GLOSSARY,
+        sourceSlug,
+        scopeRules: (config.definitionTicketScopes && config.definitionTicketScopes[note.slug]) || []
+      });
+      source = injected.source;
+      ticketDiagnostics = injected.diagnostics;
+    }
+
     const { html, sections } = markdownToStaticHtml(source);
     const defs = collectDefinitions(source, note.slug);
     let content = wrapDefinitions(html, defs);
-    fs.writeFileSync(path.join(OUT, `${note.slug}.html`), notePage({ note, content, sections }));
+    content = wrapTicketDefinitionPanels(content);
+    fs.writeFileSync(path.join(OUT, `${note.slug}.html`), notePage({ note, content, sections, defs }));
     fs.copyFileSync(full, path.join(OUT, path.basename(note.file)));
     notesBySlug.set(note.slug, { note, sections });
-  }
 
+    if (ticketDiagnostics) {
+      const total = ticketDiagnostics.reduce((n, x) => n + x.count, 0);
+      console.log(`[definitions] ${note.slug}: ${ticketDiagnostics.length} tickets, ${total} linked canonical definitions`);
+      for (const row of ticketDiagnostics) {
+        if (!row.count) console.warn(`[definitions] ticket ${row.ticket}: no canonical definitions matched`);
+      }
+    }
+  }
   fs.writeFileSync(path.join(OUT, 'index.html'), indexPage());
 
   copyDir(path.join(ROOT, 'assets'), path.join(OUT, 'assets'));
@@ -954,7 +1130,6 @@ function main() {
     fs.copyFileSync(favicon, path.join(OUT, 'favicon.svg'));
   }
   fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
-
   for (const sem of config.semesters) {
     for (const subject of sem.subjects) {
       for (const item of subject.items) {
@@ -968,8 +1143,8 @@ function main() {
       }
     }
   }
-
   console.log('Built to', OUT);
 }
+
 
 main();
