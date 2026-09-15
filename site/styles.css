@@ -889,3 +889,110 @@ a.gloss-term:focus-visible {
 .ticket-definition-card .def-source {
   opacity: .82;
 }
+
+/* Canonical definition system v3: stable inline terms + pointer popovers */
+a.gloss-term {
+  display: inline !important;
+  position: static !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  word-spacing: inherit !important;
+  vertical-align: baseline !important;
+  white-space: normal !important;
+  text-decoration-line: underline !important;
+  text-decoration-style: dotted !important;
+  text-decoration-thickness: 1px !important;
+  text-underline-offset: .16em !important;
+  text-decoration-color: color-mix(in srgb, var(--accent) 52%, transparent) !important;
+  text-decoration-skip-ink: auto !important;
+  cursor: help;
+}
+a.gloss-term:hover,
+a.gloss-term:focus-visible,
+a.gloss-term[data-gloss-open="1"] {
+  color: var(--accent) !important;
+  background: transparent !important;
+  text-decoration-style: solid !important;
+  text-decoration-color: color-mix(in srgb, var(--accent) 88%, transparent) !important;
+  outline: none !important;
+}
+.gloss-tooltip {
+  position: fixed !important;
+  inset: auto !important;
+  z-index: 2147483000 !important;
+  box-sizing: border-box !important;
+  width: min(520px, calc(100vw - 20px)) !important;
+  max-width: min(520px, calc(100vw - 20px)) !important;
+  max-height: min(64vh, 580px) !important;
+  margin: 0 !important;
+  padding: 14px 16px 13px !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 15px !important;
+  background: var(--surface-strong) !important;
+  color: var(--text) !important;
+  box-shadow: 0 18px 58px rgba(0,0,0,.28) !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+  text-align: left !important;
+  pointer-events: auto !important;
+  contain: layout paint style;
+  isolation: isolate;
+}
+.gloss-tooltip > :first-child { margin-top: 0 !important; }
+.gloss-tooltip > :last-child { margin-bottom: 0 !important; }
+.gloss-tooltip p { margin: .42rem 0 !important; }
+.gloss-tooltip .definition,
+.gloss-tooltip .ticket-definition-card {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  line-height: inherit !important;
+}
+.gloss-tooltip .def-label { font-weight: 850 !important; }
+.gloss-tooltip .def-source { margin-top: .55rem !important; }
+.gloss-tooltip mjx-container {
+  max-width: 100% !important;
+}
+.gloss-tooltip mjx-container[display="true"] {
+  display: block !important;
+  margin: .65rem 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+.gloss-tooltip mjx-container:not([display="true"]) {
+  display: inline-block !important;
+  margin: 0 .04em !important;
+  vertical-align: -.08em !important;
+}
+.gloss-tooltip svg { overflow: visible !important; }
+.gloss-tip-jump {
+  display: inline-flex !important;
+  margin-top: .7rem !important;
+  padding: 0 !important;
+  color: var(--accent) !important;
+  font-size: .86rem !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+}
+.gloss-tip-jump:hover { text-decoration: underline !important; }
+@media (max-width: 720px) {
+  .gloss-tooltip {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: 72vh !important;
+    padding: 12px 13px !important;
+  }
+}

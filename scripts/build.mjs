@@ -565,7 +565,7 @@ ${FAVICON}
   }
 
   (function () {
-    // canonical-definition-linker:v2
+    // canonical-definition-runtime:v3
     var defs = document.querySelectorAll('.definition');
     if (!defs.length) return;
     var byId = {};
@@ -574,7 +574,6 @@ ${FAVICON}
     if (!body) return;
 
     var WORD_RE = /[\p{L}\p{N}]+/gu;
-    var WORD_CHAR_RE = /[\p{L}\p{N}]/u;
     var RUSSIAN_ENDINGS = [
       'иями','ями','ами','ией','иям','иях','его','ого','ему','ому','ыми','ими','ая','яя','ое','ее','ые','ие',
       'ый','ий','ой','ую','юю','ых','их','ов','ев','ей','ом','ем','ам','ям','ах','ях','ию','ью','ия','ья','а','я','ы','и','у','ю','е','о','й','ь'
@@ -588,21 +587,25 @@ ${FAVICON}
       if (w.length <= 4 || /\d/.test(w)) return w;
       for (var i = 0; i < RUSSIAN_ENDINGS.length; i++) {
         var ending = RUSSIAN_ENDINGS[i];
-        if (w.endsWith(ending) && w.length - ending.length >= 4) {
-          return w.slice(0, -ending.length);
-        }
+        if (w.endsWith(ending) && w.length - ending.length >= 4) return w.slice(0, -ending.length);
       }
       return w;
     }
-    function isWordChar(ch) {
-      return !!ch && WORD_CHAR_RE.test(ch);
+    function tokensWithSpans(value) {
+      var out = [];
+      WORD_RE.lastIndex = 0;
+      var m;
+      while ((m = WORD_RE.exec(String(value || ''))) !== null) {
+        out.push({ raw: m[0], low: normalizeWord(m[0]), stem: stemWord(m[0]), from: m.index, to: m.index + m[0].length });
+      }
+      return out;
     }
 
     function termsFor(primaryDefs, fallbackDefs) {
       var terms = [];
       var seen = {};
       var priority = 0;
-      function add(list) {
+      function add(list, groupPriority) {
         Array.prototype.forEach.call(list || [], function (d) {
           var values = [];
           try { values = JSON.parse(d.getAttribute('data-terms') || '[]'); } catch (e) {}
@@ -610,62 +613,46 @@ ${FAVICON}
             var raw = String(values[i] || '').trim();
             var low = normalizeWord(raw);
             if (!low || low.length < 3 || seen[low]) continue;
+            var toks = tokensWithSpans(raw).map(function (x) { return x.stem; }).filter(Boolean);
+            if (!toks.length) continue;
             seen[low] = 1;
-            var single = !/\s/.test(low);
-            terms.push({
-              t: low,
-              id: d.id,
-              single: single,
-              stem: single ? stemWord(low) : '',
-              priority: priority++
-            });
+            terms.push({ t: low, tokens: toks, id: d.id, priority: groupPriority * 10000 + priority++ });
           }
         });
       }
-      // Локальные определения билета/параграфа всегда важнее глобальных.
-      add(primaryDefs);
-      add(fallbackDefs);
+      // Within a ticket/paragraph, local definitions always win over global ones.
+      add(primaryDefs, 0);
+      add(fallbackDefs, 1);
+      // Longer/more specific aliases are considered first at the same position.
+      terms.sort(function (a, b) { return b.tokens.length - a.tokens.length || b.t.length - a.t.length || a.priority - b.priority; });
       return terms;
     }
 
     function findMatches(text, terms) {
-      var low = normalizeWord(text);
+      var words = tokensWithSpans(text);
+      if (!words.length) return [];
       var candidates = [];
-
-      // Многословные термины сопоставляем только целиком и по границам слов.
-      for (var i = 0; i < terms.length; i++) {
-        var term = terms[i];
-        if (term.single) continue;
-        var from = 0;
-        while (from < low.length) {
-          var at = low.indexOf(term.t, from);
-          if (at < 0) break;
-          var end = at + term.t.length;
-          if (!isWordChar(low.charAt(at - 1)) && !isWordChar(low.charAt(end))) {
-            candidates.push({ from: at, to: end, id: term.id, priority: term.priority });
+      for (var wi = 0; wi < words.length; wi++) {
+        for (var ti = 0; ti < terms.length; ti++) {
+          var term = terms[ti];
+          var needle = term.tokens;
+          if (wi + needle.length > words.length) continue;
+          var ok = true;
+          for (var j = 0; j < needle.length; j++) {
+            if (words[wi + j].stem !== needle[j]) { ok = false; break; }
           }
-          from = at + Math.max(1, term.t.length);
+          if (!ok) continue;
+          candidates.push({
+            from: words[wi].from,
+            to: words[wi + needle.length - 1].to,
+            id: term.id,
+            priority: term.priority,
+            tokenCount: needle.length
+          });
         }
       }
-
-      // Однословные термины сравниваем как ЦЕЛЫЕ слова. Для русских падежей
-      // используется лёгкий stem, но никогда не вырезается кусок слова.
-      WORD_RE.lastIndex = 0;
-      var m;
-      while ((m = WORD_RE.exec(text)) !== null) {
-        var word = normalizeWord(m[0]);
-        var stem = stemWord(word);
-        for (var j = 0; j < terms.length; j++) {
-          var t = terms[j];
-          if (!t.single) continue;
-          if (word !== t.t && (!t.stem || stem !== t.stem)) continue;
-          candidates.push({ from: m.index, to: m.index + m[0].length, id: t.id, priority: t.priority });
-        }
-      }
-
-      // Если совпадения пересекаются, выигрывает самое длинное, затем локальное.
       candidates.sort(function (a, b) {
-        return a.from - b.from || (b.to - b.from) - (a.to - a.from) || a.priority - b.priority;
+        return a.from - b.from || (b.to - b.from) - (a.to - a.from) || b.tokenCount - a.tokenCount || a.priority - b.priority;
       });
       var selected = [];
       var cursor = -1;
@@ -692,7 +679,7 @@ ${FAVICON}
             var parent = c.parentNode;
             if (!parent || !parent.tagName) continue;
             if (!/^(P|LI|TD|TH|BLOCKQUOTE|FIGCAPTION|DT|DD)$/.test(parent.tagName)) continue;
-            if (parent.closest('a, .definition, .ticket-definitions, .def-label, script, style, code, pre, .toc, textarea, button')) continue;
+            if (parent.closest('a, .definition, .ticket-definitions, .def-label, script, style, code, pre, .toc, textarea, button, .gloss-tooltip')) continue;
             nodes.push(c);
           } else if (c.nodeType === 1 && c.tagName !== 'SCRIPT' && c.tagName !== 'STYLE') {
             walk(c);
@@ -704,13 +691,11 @@ ${FAVICON}
         var text = textNode.nodeValue;
         var matches = findMatches(text, terms);
         if (!matches.length) return;
-
         var host = textNode.ownerDocument;
         var frag = host.createDocumentFragment();
         var cursor = 0;
         for (var i = 0; i < matches.length; i++) {
           var match = matches[i];
-          // Критично: ВСЯ обычная строка сохраняется посимвольно.
           if (match.from > cursor) frag.appendChild(host.createTextNode(text.slice(cursor, match.from)));
           var a = host.createElement('a');
           a.className = 'gloss-term';
@@ -740,79 +725,162 @@ ${FAVICON}
         linkScope(body, defs, []);
       }
     }
-    var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
     var tip = null;
+    var activeTerm = null;
+    var closeTimer = 0;
+    var lastPointerType = 'mouse';
+    var tipSeq = 0;
+
+    function cancelClose() {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = 0; }
+    }
     function closeTip() {
+      cancelClose();
       if (tip) { tip.remove(); tip = null; }
-      document.querySelectorAll('.gloss-term[data-gloss-open="1"]').forEach(function (n) { n.removeAttribute('data-gloss-open'); });
+      if (activeTerm) activeTerm.removeAttribute('data-gloss-open');
+      activeTerm = null;
+    }
+    function scheduleClose(delay) {
+      cancelClose();
+      closeTimer = setTimeout(closeTip, delay == null ? 170 : delay);
+    }
+    function rewriteClonedIds(root) {
+      var map = {};
+      tipSeq += 1;
+      Array.prototype.slice.call(root.querySelectorAll('[id]')).forEach(function (n, idx) {
+        var old = n.id;
+        if (!old) return;
+        var fresh = 'gloss-tip-' + tipSeq + '-' + idx + '-' + old.replace(/[^A-Za-z0-9_-]/g, '-');
+        map[old] = fresh;
+        n.id = fresh;
+      });
+      Array.prototype.slice.call(root.querySelectorAll('*')).forEach(function (n) {
+        ['href','xlink:href'].forEach(function (attr) {
+          var v = n.getAttribute && n.getAttribute(attr);
+          if (v && v.charAt(0) === '#' && map[v.slice(1)]) n.setAttribute(attr, '#' + map[v.slice(1)]);
+        });
+        ['clip-path','filter','mask','fill','stroke'].forEach(function (attr) {
+          var v = n.getAttribute && n.getAttribute(attr);
+          if (!v) return;
+          n.setAttribute(attr, v.replace(/url\(#([^\)]+)\)/g, function (_, id) {
+            return map[id] ? 'url(#' + map[id] + ')' : 'url(#' + id + ')';
+          }));
+        });
+      });
+    }
+    function positionTip(src, t) {
+      var r = src.getBoundingClientRect();
+      var gap = 10;
+      var pad = 10;
+      var w = t.offsetWidth;
+      var h = t.offsetHeight;
+      var x = r.left + Math.min(r.width * .18, 24);
+      x = Math.max(pad, Math.min(x, innerWidth - w - pad));
+      var below = r.bottom + gap;
+      var above = r.top - h - gap;
+      var y = below;
+      if (below + h > innerHeight - pad && above >= pad) y = above;
+      else y = Math.max(pad, Math.min(below, innerHeight - h - pad));
+      t.style.left = Math.round(x) + 'px';
+      t.style.top = Math.round(y) + 'px';
     }
     function showTip(src) {
+      if (!src || !src.isConnected) return;
       var id = src.getAttribute('data-gloss');
       var target = id && byId[id];
       if (!target) return;
+      if (tip && activeTerm === src) { cancelClose(); return; }
       closeTip();
+
       var t = document.createElement('div');
       t.className = 'gloss-tooltip';
       t.setAttribute('role', 'tooltip');
+      t.setAttribute('aria-live', 'polite');
+
       var tpl = document.getElementById('definition-template-' + id);
       if (tpl && tpl.content) {
         var frag = tpl.content.cloneNode(true);
-        Array.prototype.slice.call(frag.querySelectorAll ? frag.querySelectorAll('[id], script, textarea') : []).forEach(function (n) {
-          if (n.tagName === 'SCRIPT' || n.tagName === 'TEXTAREA') n.remove();
-          else n.removeAttribute('id');
-        });
+        Array.prototype.slice.call(frag.querySelectorAll ? frag.querySelectorAll('script, textarea') : []).forEach(function (n) { n.remove(); });
         t.appendChild(frag);
       } else {
-        var clone = target.cloneNode(true);
-        clone.removeAttribute('id');
-        Array.prototype.slice.call(clone.querySelectorAll('[id], script, textarea')).forEach(function (n) {
-          if (n.tagName === 'SCRIPT' || n.tagName === 'TEXTAREA') n.remove();
-          else n.removeAttribute('id');
-        });
+        var card = target.closest ? target.closest('.ticket-definition-card') : null;
+        var clone = (card || target).cloneNode(true);
+        clone.removeAttribute && clone.removeAttribute('id');
+        Array.prototype.slice.call(clone.querySelectorAll ? clone.querySelectorAll('script, textarea, .copy-actions') : []).forEach(function (n) { n.remove(); });
         t.appendChild(clone);
       }
+      rewriteClonedIds(t);
+
       var jump = document.createElement('a');
       jump.className = 'gloss-tip-jump';
       jump.href = '#' + id;
       jump.textContent = 'К определению ↓';
       t.appendChild(jump);
+
       document.body.appendChild(t);
-      var r = src.getBoundingClientRect();
-      var g = 10;
-      var x = Math.max(8, Math.min(r.left, innerWidth - t.offsetWidth - 8));
-      var y = r.bottom + g;
-      if (y + t.offsetHeight > innerHeight - 8) y = Math.max(8, r.top - t.offsetHeight - g);
-      t.style.left = x + 'px';
-      t.style.top = y + 'px';
+      positionTip(src, t);
       tip = t;
-    }
-    if (!isTouch) {
-      document.addEventListener('mouseover', function (e) {
-        var el = e.target.closest ? e.target.closest('.gloss-term') : null;
-        if (el) showTip(el);
-      });
-      document.addEventListener('mouseout', function (e) {
-        var el = e.target.closest ? e.target.closest('.gloss-term, .gloss-tooltip') : null;
-        if (!el) return;
-        var rel = e.relatedTarget;
-        if (rel && rel.closest && rel.closest('.gloss-term, .gloss-tooltip')) return;
-        setTimeout(closeTip, 140);
-      });
-      document.addEventListener('scroll', closeTip, true);
-    } else {
-      document.addEventListener('click', function (e) {
-        var el = e.target.closest ? e.target.closest('.gloss-term') : null;
-        if (!el) return;
-        if (el.getAttribute('data-gloss-open') === '1') return;
-        e.preventDefault();
-        showTip(el);
-        el.setAttribute('data-gloss-open', '1');
-      });
-      document.addEventListener('click', function (e) {
-        if (e.target.closest && e.target.closest('.gloss-term, .gloss-tooltip')) return;
-        closeTip();
+      activeTerm = src;
+      src.setAttribute('data-gloss-open', '1');
+
+      t.addEventListener('pointerenter', cancelClose);
+      t.addEventListener('pointerleave', function (e) {
+        if (e.pointerType === 'mouse' || e.pointerType === 'pen' || !e.pointerType) scheduleClose(120);
       });
     }
+
+    document.addEventListener('pointerdown', function (e) {
+      lastPointerType = e.pointerType || 'mouse';
+    }, true);
+
+    // Mouse/pen hover works even on hybrid touch laptops. No global isTouch branch.
+    document.addEventListener('pointerover', function (e) {
+      if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+      var el = e.target.closest ? e.target.closest('.gloss-term') : null;
+      if (!el) return;
+      cancelClose();
+      showTip(el);
+    });
+    document.addEventListener('pointerout', function (e) {
+      if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+      var el = e.target.closest ? e.target.closest('.gloss-term, .gloss-tooltip') : null;
+      if (!el) return;
+      var rel = e.relatedTarget;
+      if (rel && rel.closest && rel.closest('.gloss-term, .gloss-tooltip')) return;
+      scheduleClose(170);
+    });
+
+    // Keyboard users get the same definition popup on focus.
+    document.addEventListener('focusin', function (e) {
+      var el = e.target.closest ? e.target.closest('.gloss-term') : null;
+      if (el) showTip(el);
+    });
+    document.addEventListener('focusout', function (e) {
+      var el = e.target.closest ? e.target.closest('.gloss-term, .gloss-tooltip') : null;
+      if (!el) return;
+      var rel = e.relatedTarget;
+      if (rel && rel.closest && rel.closest('.gloss-term, .gloss-tooltip')) return;
+      scheduleClose(120);
+    });
+
+    // On touch: first tap opens the definition, second tap follows the local anchor.
+    document.addEventListener('click', function (e) {
+      var el = e.target.closest ? e.target.closest('.gloss-term') : null;
+      if (!el) return;
+      if (lastPointerType !== 'touch') return;
+      if (el.getAttribute('data-gloss-open') === '1') return;
+      e.preventDefault();
+      showTip(el);
+    });
+    document.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('.gloss-term, .gloss-tooltip')) return;
+      closeTip();
+    });
+
+    addEventListener('scroll', closeTip, true);
+    addEventListener('resize', closeTip, { passive: true });
+
   })();
 
   document.addEventListener('click', function (e) {
