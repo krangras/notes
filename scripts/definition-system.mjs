@@ -158,14 +158,15 @@ function renderTicketDefinitionBlock(ticketNo, matches, { glossary, sourceSlug }
   }).join('');
 
   const blocks = [];
-  matches.forEach(({ def }) => {
+  matches.forEach(({ def }, index) => {
     const id = localId(ticketNo, def);
     const body = String(def.text || '').trim();
     const trailing = Array.isArray(def.trailing) ? def.trailing.filter(Boolean) : [];
     blocks.push(`<!-- ticket-definition-start:${id} -->`);
     blocks.push(`<a id="${id}"></a>`);
-    if (def.kind === 'def') blocks.push(`**${String(def.label || 'Определение.').trim()}** ${body}`);
-    else blocks.push(body);
+    // Нумерация локальная для каждого билета: 1, 2, 3... независимо от
+    // номера определения в полном конспекте. Сам текст остаётся каноническим.
+    blocks.push(`**Определение ${index + 1}.** ${body}`);
     if (trailing.length) blocks.push('', ...trailing);
     blocks.push('', `<a class="def-source" href="${sourceLink(sourceSlug, def)}">Открыть в полном конспекте ↗</a>`, '');
     blocks.push(`<!-- ticket-definition-end:${id} -->`, '');
@@ -243,6 +244,11 @@ export function injectDefinitionsIntoTickets(sourceRaw, definitions, options = {
         seen.add(id);
         selected.push(m);
       }
+
+      // В начале билета определения идут в том же логическом порядке, что и
+      // в полном конспекте. Это стабильнее и понятнее, чем порядок первого
+      // случайного упоминания внутри доказательства.
+      selected.sort((a, b) => a.sourceOrder - b.sourceOrder || a.pos - b.pos);
 
       totalDefinitions += selected.length;
       diagnostics.push({ ticket: Number(ticketNo), count: selected.length, ids: selected.map(x => canonicalAnchor(x.def)) });

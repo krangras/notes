@@ -851,3 +851,41 @@ a.gloss-term:focus-visible {
   a.ticket-def-chip { font-size: .84rem; }
   .gloss-tooltip { max-width: calc(100vw - 20px); max-height: 72vh; }
 }
+
+/* Canonical definition system v2: cleaner term links and ticket ordering */
+a.gloss-term {
+  color: inherit !important;
+  text-decoration-line: underline !important;
+  text-decoration-style: solid !important;
+  text-decoration-thickness: 1px !important;
+  text-underline-offset: .17em !important;
+  text-decoration-color: color-mix(in srgb, var(--accent) 34%, transparent) !important;
+  text-decoration-skip-ink: auto;
+  border-radius: 4px;
+  cursor: help;
+  transition: color .14s ease, background-color .14s ease, text-decoration-color .14s ease;
+}
+a.gloss-term:hover,
+a.gloss-term:focus-visible {
+  color: var(--accent) !important;
+  background: color-mix(in srgb, var(--accent) 7%, transparent) !important;
+  text-decoration-color: color-mix(in srgb, var(--accent) 72%, transparent) !important;
+}
+.ticket-definitions-chips {
+  margin: .75rem 0 1rem;
+}
+.ticket-definition-card {
+  padding: 1rem 1.05rem .9rem;
+  line-height: 1.65;
+}
+.ticket-definition-card .definition {
+  line-height: 1.65;
+  margin: 0 0 .45rem;
+}
+.ticket-definition-card .def-label {
+  font-weight: 850;
+  letter-spacing: -.01em;
+}
+.ticket-definition-card .def-source {
+  opacity: .82;
+}

@@ -565,40 +565,122 @@ ${FAVICON}
   }
 
   (function () {
+    // canonical-definition-linker:v2
     var defs = document.querySelectorAll('.definition');
     if (!defs.length) return;
     var byId = {};
     defs.forEach(function (d) { if (d.id) byId[d.id] = d; });
     var body = document.querySelector('.article-body');
     if (!body) return;
-    var isLetter = /[a-zа-яё0-9]/i;
+
+    var WORD_RE = /[\p{L}\p{N}]+/gu;
+    var WORD_CHAR_RE = /[\p{L}\p{N}]/u;
+    var RUSSIAN_ENDINGS = [
+      'иями','ями','ами','ией','иям','иях','его','ого','ему','ому','ыми','ими','ая','яя','ое','ее','ые','ие',
+      'ый','ий','ой','ую','юю','ых','их','ов','ев','ей','ом','ем','ам','ям','ах','ях','ию','ью','ия','ья','а','я','ы','и','у','ю','е','о','й','ь'
+    ];
+
+    function normalizeWord(value) {
+      return String(value || '').toLowerCase().replace(/ё/g, 'е');
+    }
+    function stemWord(value) {
+      var w = normalizeWord(value).replace(/[^\p{L}\p{N}]+/gu, '');
+      if (w.length <= 4 || /\d/.test(w)) return w;
+      for (var i = 0; i < RUSSIAN_ENDINGS.length; i++) {
+        var ending = RUSSIAN_ENDINGS[i];
+        if (w.endsWith(ending) && w.length - ending.length >= 4) {
+          return w.slice(0, -ending.length);
+        }
+      }
+      return w;
+    }
+    function isWordChar(ch) {
+      return !!ch && WORD_CHAR_RE.test(ch);
+    }
 
     function termsFor(primaryDefs, fallbackDefs) {
       var terms = [];
       var seen = {};
+      var priority = 0;
       function add(list) {
         Array.prototype.forEach.call(list || [], function (d) {
           var values = [];
           try { values = JSON.parse(d.getAttribute('data-terms') || '[]'); } catch (e) {}
           for (var i = 0; i < values.length; i++) {
-            var low = String(values[i] || '').trim().toLowerCase();
-            if (!low || seen[low]) continue;
+            var raw = String(values[i] || '').trim();
+            var low = normalizeWord(raw);
+            if (!low || low.length < 3 || seen[low]) continue;
             seen[low] = 1;
-            terms.push({ t: low, id: d.id });
+            var single = !/\s/.test(low);
+            terms.push({
+              t: low,
+              id: d.id,
+              single: single,
+              stem: single ? stemWord(low) : '',
+              priority: priority++
+            });
           }
         });
       }
-      // Local definitions win for ambiguous words such as «базис».
+      // Локальные определения билета/параграфа всегда важнее глобальных.
       add(primaryDefs);
       add(fallbackDefs);
-      terms.sort(function (a, b) { return b.t.length - a.t.length; });
       return terms;
+    }
+
+    function findMatches(text, terms) {
+      var low = normalizeWord(text);
+      var candidates = [];
+
+      // Многословные термины сопоставляем только целиком и по границам слов.
+      for (var i = 0; i < terms.length; i++) {
+        var term = terms[i];
+        if (term.single) continue;
+        var from = 0;
+        while (from < low.length) {
+          var at = low.indexOf(term.t, from);
+          if (at < 0) break;
+          var end = at + term.t.length;
+          if (!isWordChar(low.charAt(at - 1)) && !isWordChar(low.charAt(end))) {
+            candidates.push({ from: at, to: end, id: term.id, priority: term.priority });
+          }
+          from = at + Math.max(1, term.t.length);
+        }
+      }
+
+      // Однословные термины сравниваем как ЦЕЛЫЕ слова. Для русских падежей
+      // используется лёгкий stem, но никогда не вырезается кусок слова.
+      WORD_RE.lastIndex = 0;
+      var m;
+      while ((m = WORD_RE.exec(text)) !== null) {
+        var word = normalizeWord(m[0]);
+        var stem = stemWord(word);
+        for (var j = 0; j < terms.length; j++) {
+          var t = terms[j];
+          if (!t.single) continue;
+          if (word !== t.t && (!t.stem || stem !== t.stem)) continue;
+          candidates.push({ from: m.index, to: m.index + m[0].length, id: t.id, priority: t.priority });
+        }
+      }
+
+      // Если совпадения пересекаются, выигрывает самое длинное, затем локальное.
+      candidates.sort(function (a, b) {
+        return a.from - b.from || (b.to - b.from) - (a.to - a.from) || a.priority - b.priority;
+      });
+      var selected = [];
+      var cursor = -1;
+      for (var k = 0; k < candidates.length; k++) {
+        var c = candidates[k];
+        if (c.from < cursor) continue;
+        selected.push(c);
+        cursor = c.to;
+      }
+      return selected;
     }
 
     function linkScope(root, primaryDefs, fallbackDefs) {
       var terms = termsFor(primaryDefs, fallbackDefs);
       if (!terms.length) return;
-      var minLen = terms.reduce(function (m, x) { return Math.min(m, x.t.length); }, 9999);
       var nodes = [];
       (function walk(node) {
         var children = node.childNodes;
@@ -606,7 +688,7 @@ ${FAVICON}
           var c = children[i];
           if (c.nodeType === 3) {
             var v = c.nodeValue;
-            if (!v || v.length < minLen) continue;
+            if (!v || v.length < 3) continue;
             var parent = c.parentNode;
             if (!parent || !parent.tagName) continue;
             if (!/^(P|LI|TD|TH|BLOCKQUOTE|FIGCAPTION|DT|DD)$/.test(parent.tagName)) continue;
@@ -620,58 +702,25 @@ ${FAVICON}
 
       nodes.forEach(function (textNode) {
         var text = textNode.nodeValue;
-        var low = text.toLowerCase();
-        var parts = [];
-        var pos = 0;
-        var len = text.length;
-        while (pos < len) {
-          var rest = len - pos;
-          if (rest < minLen) { parts.push([0, text.slice(pos)]); break; }
-          var match = null;
-          for (var k = 0; k < terms.length; k++) {
-            var term = terms[k];
-            if (term.t.length > rest) continue;
-            var eq = low.slice(pos, pos + term.t.length) === term.t;
-            var infl = term.t.indexOf(' ') === -1 && low.slice(pos).indexOf(term.t) === 0;
-            if (!eq && !infl) continue;
-            var before = pos ? text.charAt(pos - 1) : '';
-            if (isLetter.test(before)) continue;
-            var consumed = term.t.length;
-            var endChar = text.charAt(pos + consumed);
-            if (eq) {
-              if (endChar && isLetter.test(endChar)) continue;
-            } else {
-              var j = pos + term.t.length;
-              while (j < len && isLetter.test(text.charAt(j))) j++;
-              consumed = j - pos;
-            }
-            match = { id: term.id, from: pos, to: pos + consumed };
-            break;
-          }
-          if (match) {
-            if (match.from > pos) parts.push([0, text.slice(pos, match.from)]);
-            parts.push([match.id, text.slice(match.from, match.to)]);
-            pos = match.to;
-            if (pos <= match.from) pos = match.from + 1;
-          } else {
-            pos++;
-          }
-        }
-        var has = false;
-        for (var q = 0; q < parts.length; q++) if (parts[q][0]) { has = true; break; }
-        if (!has) return;
+        var matches = findMatches(text, terms);
+        if (!matches.length) return;
+
         var host = textNode.ownerDocument;
         var frag = host.createDocumentFragment();
-        for (var i2 = 0; i2 < parts.length; i2++) {
-          var part = parts[i2];
-          if (!part[0]) { frag.appendChild(host.createTextNode(part[1])); continue; }
+        var cursor = 0;
+        for (var i = 0; i < matches.length; i++) {
+          var match = matches[i];
+          // Критично: ВСЯ обычная строка сохраняется посимвольно.
+          if (match.from > cursor) frag.appendChild(host.createTextNode(text.slice(cursor, match.from)));
           var a = host.createElement('a');
           a.className = 'gloss-term';
-          a.href = '#' + part[0];
-          a.setAttribute('data-gloss', part[0]);
-          a.textContent = part[1];
+          a.href = '#' + match.id;
+          a.setAttribute('data-gloss', match.id);
+          a.textContent = text.slice(match.from, match.to);
           frag.appendChild(a);
+          cursor = match.to;
         }
+        if (cursor < text.length) frag.appendChild(host.createTextNode(text.slice(cursor)));
         textNode.parentNode.replaceChild(frag, textNode);
       });
     }
