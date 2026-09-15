@@ -782,8 +782,8 @@ ${FAVICON}
       var y = below;
       if (below + h > innerHeight - pad && above >= pad) y = above;
       else y = Math.max(pad, Math.min(below, innerHeight - h - pad));
-      t.style.left = Math.round(x) + 'px';
-      t.style.top = Math.round(y) + 'px';
+      t.style.setProperty('left', Math.round(x) + 'px', 'important');
+      t.style.setProperty('top', Math.round(y) + 'px', 'important');
     }
     function showTip(src) {
       if (!src || !src.isConnected) return;

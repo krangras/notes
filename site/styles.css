@@ -926,7 +926,6 @@ a.gloss-term[data-gloss-open="1"] {
 }
 .gloss-tooltip {
   position: fixed !important;
-  inset: auto !important;
   z-index: 2147483000 !important;
   box-sizing: border-box !important;
   width: min(520px, calc(100vw - 20px)) !important;
