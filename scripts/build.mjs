@@ -476,7 +476,18 @@ function markdownToStaticHtml(sourceRaw) {
   html = assignHeadingIds(html, sections);
   html = restoreMath(html, math);
   if (unit) html = wrapCopySections(html, source, re, unit);
+  else html = wrapTopicSections(html);
   return { html, sections };
+}
+
+function wrapTopicSections(html) {
+  const parts = html.split(/(?=<h2(?:\s[^>]*)?>)/i);
+  if (parts.length < 2) return html;
+
+  return parts.map((part, index) => {
+    if (index === 0 || !/^<h2(?:\s[^>]*)?>/i.test(part)) return part;
+    return `<section class="topic-section">${part}</section>`;
+  }).join('');
 }
 
 function tocLabel(title) {
