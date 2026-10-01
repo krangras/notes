@@ -480,9 +480,42 @@ function markdownToStaticHtml(sourceRaw) {
   return { html, sections };
 }
 
+function splitIntoTopics(source) {
+  const lines = source.replace(/\r\n/g, '\n').split('\n');
+  const hasTickets = /<a\s+id=["']ticket-\d+["']\s*><\/a>/i.test(source);
+  const h1Count = lines.filter(line => /^#\s+/.test(line)).length;
+  const h2Count = lines.filter(line => /^##\s+/.test(line)).length;
+  const level = hasTickets || h2Count > 2 || h1Count <= 2 ? 2 : 1;
+  const heading = new RegExp(`^#{${level}}\\s+`);
+  const topics = [];
+  let current = null;
+  let pendingAnchor = '';
+
+  for (const line of lines) {
+    if (/^<a\s+id=["'][^"']+["']\s*><\/a>$/i.test(line)) {
+      pendingAnchor = line;
+      continue;
+    }
+    if (heading.test(line)) {
+      if (current) topics.push(current);
+      current = { source: `${pendingAnchor ? `${pendingAnchor}\n` : ''}${line}\n`, title: line.replace(heading, '').trim() };
+      pendingAnchor = '';
+    } else if (current) {
+      current.source += `${line}\n`;
+    }
+  }
+  if (current) topics.push(current);
+  const usable = topics.filter(topic => topic.title.toLowerCase() !== 'содержание');
+  return usable.length ? usable : [{ source, title: 'Конспект' }];
+}
+
 function wrapTopicSections(html) {
   const parts = html.split(/(?=<h2(?:\s[^>]*)?>)/i);
-  if (parts.length < 2) return html;
+  if (parts.length === 1) {
+    return /^<h2(?:\s[^>]*)?>/i.test(html.trim())
+      ? `<section class="topic-section">${html}</section>`
+      : html;
+  }
 
   return parts.map((part, index) => {
     if (index === 0 || !/^<h2(?:\s[^>]*)?>/i.test(part)) return part;
@@ -505,13 +538,15 @@ function tocLabel(title) {
   return esc(s).replace(/@@TEX(\d+)@@/g, (_, i) => renderMath(tex[i], false));
 }
 
-function tocHtml(sections) {
+function tocHtml(sections, topicLinks = null, activeTopicId = '') {
   return sections
     .filter(s => s.title.trim().toLowerCase() !== 'содержание')
     .filter(s => s.level <= 2 || s.title.trim().startsWith('§'))
     .map(s => {
       const level = s.level > 2 ? 3 : s.level;
-      return `<a class="toc-link toc-level-${level}" href="#${esc(s.id)}">${tocLabel(s.title)}</a>`;
+      const href = topicLinks ? topicLinks.get(s.id) || `#${esc(s.id)}` : `#${esc(s.id)}`;
+      const active = s.id === activeTopicId ? ' is-active' : '';
+      return `<a class="toc-link toc-level-${level}${active}" href="${href}">${tocLabel(s.title)}</a>`;
     })
     .join('');
 }
@@ -523,8 +558,19 @@ function definitionTemplatesHtml(defs) {
   }).join('');
 }
 
-function notePage({ note, content, sections, defs }) {
+function topicPageName(note, index) {
+  return index === 0 ? `${note.slug}.html` : `${note.slug}--topic-${index + 1}.html`;
+}
+
+function notePage({ note, content, sections, defs, topics, currentTopic }) {
   const definitionTemplates = definitionTemplatesHtml(defs);
+  const topicLinks = new Map(topics.map((topic, index) => [topic.id, topicPageName(note, index)]));
+  const previous = topics[currentTopic - 1];
+  const next = topics[currentTopic + 1];
+  const topicNav = `<nav class="topic-nav" aria-label="Навигация по темам">
+    ${previous ? `<a class="topic-nav-link topic-nav-prev" href="${topicPageName(note, currentTopic - 1)}"><span>← Предыдущая</span><strong>${tocLabel(previous.title)}</strong></a>` : '<span></span>'}
+    ${next ? `<a class="topic-nav-link topic-nav-next" href="${topicPageName(note, currentTopic + 1)}"><span>Следующая →</span><strong>${tocLabel(next.title)}</strong></a>` : '<span></span>'}
+  </nav>`;
   return `<!doctype html>
 <html lang="ru">
 <head>
@@ -554,11 +600,12 @@ ${FAVICON}
   <div class="article-layout">
     <aside class="toc">
       <div class="toc-title">Содержание</div>
-      <nav class="toc-list">${tocHtml(sections)}</nav>
+       <nav class="toc-list">${tocHtml(topics.map(topic => topic.sections[0]).filter(Boolean), topicLinks, topics[currentTopic]?.id)}</nav>
     </aside>
     <article class="article-body">${content}</article>
     <div class="definition-templates" aria-hidden="true">${definitionTemplates}</div>
   </div>
+  ${topicNav}
 </main>
 
 <footer class="site-footer site-shell">
@@ -1231,13 +1278,33 @@ function main() {
       ticketDiagnostics = injected.diagnostics;
     }
 
-    const { html, sections } = markdownToStaticHtml(source);
     const defs = collectDefinitions(source, note.slug);
-    let content = wrapDefinitions(html, defs);
-    content = wrapTicketDefinitionPanels(content);
-    fs.writeFileSync(path.join(OUT, `${note.slug}.html`), notePage({ note, content, sections, defs }));
+    const topics = splitIntoTopics(source).map((topic, index) => {
+      const rendered = markdownToStaticHtml(topic.source);
+      let content = wrapDefinitions(rendered.html, defs);
+      content = wrapTicketDefinitionPanels(content);
+      return {
+        ...topic,
+        id: rendered.sections[0]?.id || `topic-${index + 1}`,
+        sections: rendered.sections,
+        content
+      };
+    });
+    for (const [index, topic] of topics.entries()) {
+      fs.writeFileSync(
+        path.join(OUT, topicPageName(note, index)),
+        notePage({
+          note,
+          content: topic.content,
+          sections: topic.sections,
+          defs,
+          topics,
+          currentTopic: index
+        })
+      );
+    }
     fs.copyFileSync(full, path.join(OUT, path.basename(note.file)));
-    notesBySlug.set(note.slug, { note, sections });
+    notesBySlug.set(note.slug, { note, sections: topics.flatMap(topic => topic.sections) });
 
     if (ticketDiagnostics) {
       const total = ticketDiagnostics.reduce((n, x) => n + x.count, 0);
